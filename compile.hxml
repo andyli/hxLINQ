@@ -1,0 +1,29 @@
+-main Test
+-cpp bin
+
+-cmd ./bin/Test
+
+--next
+-main Test
+-swf bin/Test.swf
+-swf-version 10
+
+-cmd open bin/Test.swf
+
+--next
+-main Test
+-neko bin/Test.n
+
+-cmd neko bin/Test.n
+
+--next
+-main Test
+-php /Library/WebServer/Documents/TestPHP
+
+-cmd open http://localhost/TestPHP
+
+--next
+-main Test
+-js /Library/WebServer/Documents/TestJS/Test.js
+
+-cmd open http://localhost/TestJS
