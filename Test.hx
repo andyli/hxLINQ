@@ -54,6 +54,26 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals("Bernard",r.last().firstName);
 		this.assertEquals("Steve",r.first().firstName);
 	}
+	
+	public function testOrderByString():Void {
+		var r;
+
+		r = new LINQ(people)
+				.orderByString(function(p:Person) return p.firstName);
+		this.assertEquals(10, r.count());
+		this.assertEquals("Bernard",r.first().firstName);
+		this.assertEquals("Steve",r.last().firstName);
+	}
+
+	public function testOrderByStringDescending():Void {
+		var r;
+
+		r = new LINQ(people)
+				.orderByStringDescending(function(p:Person) return p.firstName);
+		this.assertEquals(10,r.count());
+		this.assertEquals("Bernard",r.last().firstName);
+		this.assertEquals("Steve",r.first().firstName);
+	}
 
 	public function testCount():Void {
 		this.assertEquals(10,new LINQ(people).count());

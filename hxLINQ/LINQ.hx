@@ -47,9 +47,7 @@ class LINQ<T> {
 		var tempArray = items.array();
 
 		tempArray.sort(function(a,b){
-			var x = clause(a);
-            var y = clause(b);
-            return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            return clause(a) - clause(b);
 		});
 
 		return new LINQ(tempArray);
@@ -59,9 +57,31 @@ class LINQ<T> {
 		var tempArray = items.array();
 		
 		tempArray.sort(function(a,b){
+			return clause(b) - clause(a);
+		});
+
+		return new LINQ(tempArray);
+	}
+	
+	public function orderByString(clause:T->String):LINQ<T> {
+		var tempArray = items.array();
+
+		tempArray.sort(function(a, b) {
+			var x = clause(a);
+            var y = clause(b);
+            return sortString(x,y);
+		});
+
+		return new LINQ(tempArray);
+	}
+
+	public function orderByStringDescending(clause:T->String):LINQ<T> {
+		var tempArray = items.array();
+		
+		tempArray.sort(function(a, b) {
 			var x = clause(b);
             var y = clause(a);
-            return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+			return sortString(x,y);
 		});
 
 		return new LINQ(tempArray);
@@ -195,4 +215,14 @@ class LINQ<T> {
 	}
 
 	private var items:Iterable<T>;
+	
+	static private function sortString(s0:String, s1:String):Int {
+		var cc0, cc1;
+		for (i in 0...cast Math.min(s0.length,s1.length)) {
+			cc0 = s0.charCodeAt(i);
+			cc1 = s1.charCodeAt(i);
+			if (cc0 != cc1) return cc0 - cc1;
+		}
+		return s0.length - s1.length;
+	}
 }
