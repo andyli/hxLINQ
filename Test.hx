@@ -220,6 +220,15 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals("Kate",r.firstName);
 	}
 
+	public function testGroupBy():Void {
+		var r;
+
+		r = new LINQ(people)
+				.groupBy(function(p:Person) return p.firstName.charAt(0));
+		
+		this.assertEquals(6,r.count());
+	}
+
 	static public var people:Array<Person> = [
 		{ id: 1, firstName: "Chris", lastName: "Pearson", bookIds: [1001, 1002, 1003] },
 		{ id: 2, firstName: "Kate", lastName: "Johnson", bookIds: [2001, 2002, 2003] },

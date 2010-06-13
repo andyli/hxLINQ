@@ -87,6 +87,29 @@ class LINQ<T> {
 		return new LINQ(tempArray);
 	}
 
+	public function groupBy<F>(clause:T->F) : LINQ<List<T>> {
+		var dict = new Array<F>();
+		var lists = new Array<List<T>>();
+		
+		for (item in items) {
+			var f = clause(item);
+			var fIndex = indexOf(dict,f);
+			var list;
+
+			if (fIndex == -1){	
+				list = new List<T>();
+				lists.push(list);
+				dict.push(f);
+			} else {
+				list = lists[fIndex];
+			}
+			
+			list.add(item);
+		}
+
+		return new LINQ(lists);
+	}
+
 	public function selectMany<F>(clause:T->Array<F>):LINQ<F> {
 		var r = new Array<F>();
 		for (item in items){
@@ -163,7 +186,11 @@ class LINQ<T> {
 	}
 
 	public function elementAt(i:Int):T {
-		return items.array()[i];
+		var count = 0;
+		for (item in items) {
+			if (count++ == i) return item;
+		}
+		return null;
 	}
 
 	public function concat(items:Iterable<T>):LINQ<T> {
@@ -224,5 +251,17 @@ class LINQ<T> {
 			if (cc0 != cc1) return cc0 - cc1;
 		}
 		return s0.length - s1.length;
+	}
+
+	static private function indexOf<F>(items:Iterable<F>, item:F):Int {
+		var i = 0;
+		for (_item in items) {
+			if (_item == item) {
+				return i;
+			} else {
+				i++;
+			}
+		}
+		return -1;
 	}
 }
