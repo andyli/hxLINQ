@@ -87,27 +87,20 @@ class LINQ<T> {
 		return new LINQ(tempArray);
 	}
 
-	public function groupBy<F>(clause:T->F) : LINQ<List<T>> {
-		var dict = new Array<F>();
-		var lists = new Array<List<T>>();
+	public function groupBy<F>(clause:T->F) : LINQ<IGrouping<F,T>> {
+		var lists = new Array<Grouping<F,T>>();
 		
 		for (item in items) {
 			var f = clause(item);
-			var fIndex = indexOf(dict,f);
-			var list;
-
-			if (fIndex == -1){	
-				list = new List<T>();
+			var list = new LINQ(lists).where(function(g:IGrouping<F,T>, i:Int) return g.key == f).first();
+			if (list == null) {	
+				list = new Grouping<F,T>(f);
 				lists.push(list);
-				dict.push(f);
-			} else {
-				list = lists[fIndex];
 			}
-			
 			list.add(item);
 		}
 
-		return new LINQ(lists);
+		return new LINQ(cast lists);
 	}
 
 	public function selectMany<F>(clause:T->Array<F>):LINQ<F> {
@@ -263,5 +256,29 @@ class LINQ<T> {
 			}
 		}
 		return -1;
+	}
+}
+
+interface IGrouping<K,V> {
+	public var key(default,null):K;
+
+	public function iterator():Iterator<V>;
+}
+
+private class Grouping<K,V> implements IGrouping<K,V> {
+	public var key(default,null):K;
+	private var values:List<V>;
+
+	public function new(key:K):Void {
+		this.key = key;
+		values = new List<V>();
+	}
+
+	public function add(val:V):Void {
+		values.add(val);
+	}
+
+	public function iterator():Iterator<V> {
+		return values.iterator();
 	}
 }
