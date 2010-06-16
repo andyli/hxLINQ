@@ -100,6 +100,42 @@ class LINQ<T> {
 		}
 	}
 
+	public function aggregate<F>(seed:F, clause:F->T->F):F {
+		var result = seed;
+		for (item in items) {
+			result = clause(result,item);
+		}
+		return result;
+	}
+
+	public function min(?clause:T->Float):Float {
+		if (clause == null){
+			return this.aggregate(cast this.first(), cast Math.min);
+		} else {
+			return this.aggregate(clause(this.first()), function(s:Float,i:T) return Math.min(s,clause(i)));
+		}
+	}
+
+	public function max(?clause:T->Float):Float {
+		if (clause == null){
+			return this.aggregate(cast this.first(), cast Math.max);
+		} else {
+			return this.aggregate(clause(this.first()), function(s:Float,i:T) return Math.max(s,clause(i)));
+		}
+	}
+
+	public function sum(?clause:T->Float):Float {
+		if (clause == null){
+			return this.aggregate(0.0, function(s:Float,i:T) return s + cast i);
+		} else {
+			return this.aggregate(0.0, function(s:Float,i:T) return s + clause(i));
+		}
+	}
+
+	public function average(?clause:T->Float):Float {
+		return this.sum(clause)/this.count();
+	}
+
 	public function distinct<F>(clause:T->F):LINQ<F> {
 		var newItem;
 		var retVal = new List<F>();

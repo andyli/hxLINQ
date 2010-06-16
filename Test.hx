@@ -75,6 +75,52 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals("Steve",r.first().firstName);
 	}
 
+	public function testAggregate():Void {
+		var r = new LINQ(people)
+					.aggregate(0, function (i:Int, p:Person) return i+p.bookIds.length);
+		this.assertEquals(30,r);
+	}
+
+	public function testMin():Void {
+		var r = new LINQ(people)
+					.min(function (p:Person) return p.id);
+		this.assertEquals(1, cast r);
+
+		r = new LINQ([235,3635,585,-1,-1.1,1000])
+				.min();
+		this.assertEquals(-1.1,r);
+	}
+
+	public function testMax():Void {
+		var r = new LINQ(people)
+					.max(function (p:Person) return p.id);
+		this.assertEquals(10, cast r);
+
+		r = new LINQ([235,3635,585,-1,-1.1,1000])
+				.max();
+		this.assertEquals(3635,cast r);
+	}
+
+	public function testSum():Void {
+		var r = new LINQ(people)
+					.sum(function (p:Person) return p.id);
+		this.assertEquals(55.0, r);
+
+		r = new LINQ([235,3635,585,-1,-1.1,1000])
+				.sum();
+		this.assertEquals(235+3635+585-1-1.1+1000,r);
+	}
+
+	public function testAverage():Void {
+		var r = new LINQ(people)
+					.average(function (p:Person) return p.id);
+		this.assertEquals(5.5, r);
+
+		r = new LINQ([235,3635,585,-1,-1.1,1000])
+				.average();
+		this.assertEquals((235+3635+585-1-1.1+1000)/6,r);
+	}
+
 	public function testCount():Void {
 		this.assertEquals(10,new LINQ(people).count());
 
