@@ -1,6 +1,6 @@
 h1. hxLINQ
 
-HaXe port of the "LINQ to JavaScript (JSLINQ)":http://jslinq.codeplex.com Project.
+HaXe version of LINQ. Based on the "LINQ to JavaScript (JSLINQ)":http://jslinq.codeplex.com Project.
 
 JSLINQ is licensed under the Microsoft Reciprocal License (Ms-RL).
 Copyright (C) 2009 "Chris Pietschmann":http://pietschsoft.com . All rights reserved.
@@ -9,3 +9,11 @@ The license can be found "here":http://jslinq.codeplex.com/license .
 h1. Usage
 
 It is very similat to using "JSLINQ":http://jslinq.codeplex.com/ . You may look at *Test.hx*.
+
+You can also refer to the original "LINQ documentation":http://msdn.microsoft.com/en-us/library/bb308959.aspx.
+
+h1. Known bugs
+
+@orderBy@ and @orderByDescending@ when used in C++ target with numbers, the result is wrong. It is due to a bug in hxcpp, reported "here":http://code.google.com/p/hxcpp/issues/detail?id=29.
+
+When used in C++ target, chained function calls with anonymous function as input will fail, It is again due to a bug in hxcpp, reported "here":http://code.google.com/p/hxcpp/issues/detail?id=27.

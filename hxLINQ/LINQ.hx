@@ -1,6 +1,6 @@
 /*
 	hxLINQ
-	HaXe port of the LINQ to JavaScript (JSLINQ) v2.1? Project - http://jslinq.codeplex.com
+	HaXe version of LINQ. Based on the "LINQ to JavaScript (JSLINQ)":http://jslinq.codeplex.com Project.
 
 	JSLINQ is licensed under the Microsoft Reciprocal License (Ms-RL)
 	Copyright (C) 2009 Chris Pietschmann (http://pietschsoft.com). All rights reserved.
