@@ -59,7 +59,7 @@ class Test extends haxe.unit.TestCase{
 		var r;
 
 		r = new LINQ(people)
-				.orderByString(function(p:Person) return p.firstName);
+				.orderBy(function(p:Person) return p.firstName);
 		this.assertEquals(10, r.count());
 		this.assertEquals("Bernard",r.first().firstName);
 		this.assertEquals("Steve",r.last().firstName);
@@ -69,7 +69,7 @@ class Test extends haxe.unit.TestCase{
 		var r;
 
 		r = new LINQ(people)
-				.orderByStringDescending(function(p:Person) return p.firstName);
+				.orderByDescending(function(p:Person) return p.firstName);
 		this.assertEquals(10,r.count());
 		this.assertEquals("Bernard",r.last().firstName);
 		this.assertEquals("Steve",r.first().firstName);
