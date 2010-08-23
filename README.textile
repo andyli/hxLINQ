@@ -14,6 +14,4 @@ You can also refer to the original "LINQ documentation":http://msdn.microsoft.co
 
 h1. Known bugs
 
-@orderBy@ and @orderByDescending@ when used in C++ target with numbers, the result is wrong. It is due to a bug in hxcpp, reported "here":http://code.google.com/p/hxcpp/issues/detail?id=29.
-
-When used in C++ target, chained function calls with anonymous function as input will fail, It is again due to a bug in hxcpp, reported "here":http://code.google.com/p/hxcpp/issues/detail?id=27.
+None.

@@ -2,5 +2,5 @@
     <user name="andyli"/>
     <tag v="cross"/>
     <description>HaXe port of the LINQ to JavaScript (JSLINQ) Project. Tested on Flash/JS/PHP/Neko/C++ targets.</description>
-    <version name="1.1">Added orderByString.</version>
+    <version name="1.1">Added orderByString and aggregate functions.</version>
 </project>
