@@ -43,28 +43,28 @@ class LINQ<T> {
 		return new LINQ(newList);
 	}
 
-	public function orderBy<T2>(clause:T->T2):LINQ<T> {
+	public function orderBy<T2>(clause:T->T2):OrderedLINQ<T> {
 		var tempArray = items.array();
-
-		tempArray.sort(function(a, b) {
+		var sortFn = function(a, b) {
 			var x = clause(a);
             var y = clause(b);
-            return Reflect.compare(x,y);
-		});
+			return Reflect.compare(x,y);
+		}
+		tempArray.sort(sortFn);
 
-		return new LINQ(tempArray);
+		return new OrderedLINQ(tempArray, [sortFn]);
 	}
 
-	public function orderByDescending<T2>(clause:T->T2):LINQ<T> {
+	public function orderByDescending<T2>(clause:T->T2):OrderedLINQ<T> {
 		var tempArray = items.array();
-		
-		tempArray.sort(function(a, b) {
+		var sortFn = function(a, b) {
 			var x = clause(b);
             var y = clause(a);
 			return Reflect.compare(x,y);
-		});
+		}
+		tempArray.sort(sortFn);
 
-		return new LINQ(tempArray);
+		return new OrderedLINQ(tempArray, [sortFn]);
 	}
 
 	public function groupBy<F>(clause:T->F) : LINQ<IGrouping<F,T>> {
@@ -264,6 +264,60 @@ class LINQ<T> {
 		return -1;
 	}
 }
+
+private class OrderedLINQ<T> extends LINQ<T> {
+	private var sortFns:Array<T->T->Int>;
+
+	public function new(dataItems:Iterable<T>, sortFns:Array<T->T->Int>) {
+		super(dataItems);
+		this.sortFns = sortFns;
+	}
+	
+	public function thenBy<T2>(clause:T->T2):OrderedLINQ<T> {
+		var tempArray:Array<T> = cast items;
+		var _sortFns = sortFns;
+		_sortFns.push(function(a, b) {
+			var x = clause(a);
+            var y = clause(b);
+			return Reflect.compare(x,y);
+		});
+
+		tempArray.sort(function(a, b) {
+			var r:Int = 0;
+			for (sortFn in _sortFns){
+		        r = sortFn(a,b);
+		        if (r != 0) break;
+			}
+			
+            return r;
+		});
+
+		return new OrderedLINQ(tempArray, _sortFns);
+	}
+
+	public function thenByDescending<T2>(clause:T->T2):OrderedLINQ<T> {
+		var tempArray:Array<T> = cast items;
+		var _sortFns = sortFns;
+		_sortFns.push(function(a, b) {
+			var x = clause(b);
+            var y = clause(a);
+			return Reflect.compare(x,y);
+		});
+
+		tempArray.sort(function(a, b) {
+			var r:Int = 0;
+			for (sortFn in _sortFns){
+		        r = sortFn(a,b);
+		        if (r != 0) break;
+			}
+			
+            return r;
+		});
+
+		return new OrderedLINQ(tempArray, _sortFns);
+	}
+}
+
 
 interface IGrouping<K,V> {
 	public var key(default,null):K;

@@ -275,6 +275,28 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(6,r.count());
 	}
 
+	public function testThenBy():Void {
+		var r;
+
+		r = new LINQ(people)
+				.orderBy(function(p:Person) return p.firstName.charCodeAt(0))
+				.thenBy(function(p:Person) return p.lastName.charCodeAt(0))
+				.select(function(p:Person) return p.id);
+		this.assertEquals(10,r.count());
+		this.assertEquals("9,1,8,7,4,3,2,10,6,5",r.array().join(","));
+	}
+
+	public function testThenByDescending():Void {
+		var r;
+
+		r = new LINQ(people)
+				.orderBy(function(p:Person) return p.firstName.charCodeAt(0))
+				.thenByDescending(function(p:Person) return p.lastName.charCodeAt(0))
+				.select(function(p:Person) return p.id);
+		this.assertEquals(10,r.count());
+		this.assertEquals("9,8,1,7,3,4,6,10,2,5",r.array().join(","));
+	}
+
 	static public var people:Array<Person> = [
 		{ id: 1, firstName: "Chris", lastName: "Pearson", bookIds: [1001, 1002, 1003] },
 		{ id: 2, firstName: "Kate", lastName: "Johnson", bookIds: [2001, 2002, 2003] },
