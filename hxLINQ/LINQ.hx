@@ -275,7 +275,7 @@ private class OrderedLINQ<T> extends LINQ<T> {
 	
 	public function thenBy<T2>(clause:T->T2):OrderedLINQ<T> {
 		var tempArray:Array<T> = cast items;
-		var _sortFns = sortFns;
+		var _sortFns = sortFns.copy();
 		_sortFns.push(function(a, b) {
 			var x = clause(a);
             var y = clause(b);
@@ -297,7 +297,7 @@ private class OrderedLINQ<T> extends LINQ<T> {
 
 	public function thenByDescending<T2>(clause:T->T2):OrderedLINQ<T> {
 		var tempArray:Array<T> = cast items;
-		var _sortFns = sortFns;
+		var _sortFns = sortFns.copy();
 		_sortFns.push(function(a, b) {
 			var x = clause(b);
             var y = clause(a);
