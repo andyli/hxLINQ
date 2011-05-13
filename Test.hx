@@ -1,7 +1,15 @@
 import hxLINQ.LINQ;
 
+import hxLINQ.LINQ;
+using hxLINQ.LINQ;
 using Lambda;
 
+class Test {
+	static function main():Void {
+		trace(["abc"].linq().where(function (i,n) return true).dump());
+	}
+}
+/*
 typedef Person = { id:Int , firstName:String, lastName:String, bookIds:Array<Int> };
 
 class Test extends haxe.unit.TestCase{
@@ -316,3 +324,4 @@ class Test extends haxe.unit.TestCase{
 		runner.run();
 	}
 }
+*/

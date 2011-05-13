@@ -9,13 +9,40 @@
 
 package hxLINQ;
 
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Context;
+
+import hxLINQ.macro.Helper;
+using hxLINQ.macro.Helper;
+#end
+
 using Lambda;
 
+class LINQtoArray {
+	static public function linq<T>(dataItems:Array<T>) {
+		return new LINQ<T>(dataItems);
+	}
+}
+
+class LINQtoIterable {
+	static public function linq<T>(dataItems:Iterable<T>) {
+		return new LINQ<T>(dataItems);
+	}
+}
+
+class LINQtoIterator {
+	static public function linq<T>(dataItems:Iterator<T>) {
+		return new LINQ<T>(dataItems);
+	}
+}
+
 class LINQ<T> {
-	public function new(dataItems:Iterable<T>):Void {
-		this.items = dataItems;
+	public function new(?array:Array<T>, ?iterable:Iterable<T>, ?iterator:Iterator<T>):Void {
+		throw "LINQ instence can't be used in runtime.";
 	}
 
+	/*
 	public function iterator():Iterator<T> {
 		return items.iterator();
 	}
@@ -250,7 +277,6 @@ class LINQ<T> {
 		return r == null ? defaultValue : r;
 	}
 
-	private var items:Iterable<T>;
 	
 	static private function indexOf<F>(items:Iterable<F>, item:F):Int {
 		var i = 0;
@@ -263,8 +289,36 @@ class LINQ<T> {
 		}
 		return -1;
 	}
+	*/	
+	
+	/*
+	public function where(clause:T->Int->Bool):LINQ<T> {
+		var i = 0;
+		var newList = new List<T>();
+		for (item in items) {
+			if (clause(item,i++)) {
+				newList.add(item);
+			}
+		}
+		return new LINQ(newList);
+	}
+	*/
+	@:macro static public function where<T>(linq:ExprRequire<LINQ<T>>, clause:ExprRequire < T->Int->Bool > ) {
+		return clause.hasEDisplay() ? clause : linq;
+	}
+	
+	@:macro static public function toArray<T>(linq:ExprRequire<LINQ<T>>) {
+		var pos = Context.currentPos();
+		return linq;
+	}
+	
+	@:macro static public function dump(linq:ExprRequire<LINQ<Dynamic>>) {
+		var pos = Context.currentPos();
+		//return { expr:EConst(CString(linq.toECallArray().map(Helper.getECallFieldName).join(","))), pos:pos };
+		return { expr:EConst(CString(Std.string(linq.toECallArray().map(Helper.getECallParams).join("\n")))), pos:pos };
+	}
 }
-
+/*
 private class OrderedLINQ<T> extends LINQ<T> {
 	private var sortFns:Array<T->T->Int>;
 
@@ -317,7 +371,7 @@ private class OrderedLINQ<T> extends LINQ<T> {
 		return new OrderedLINQ(tempArray, _sortFns);
 	}
 }
-
+*/
 
 interface IGrouping<K,V> {
 	public var key(default,null):K;
