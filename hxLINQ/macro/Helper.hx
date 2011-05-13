@@ -2,6 +2,7 @@ package hxLINQ.macro;
 
 import haxe.macro.Expr;
 import haxe.macro.Context;
+import haxe.macro.Type;
 
 using Lambda;
 
@@ -52,8 +53,7 @@ class Helper {
 	static public function hasEDisplay(expr:Expr):Bool {
 		return !traverse(expr, 
 			function(e) return expr == null ? true : switch(e.expr) {
-				case EDisplay(e, isCall): false;
-				case EDisplayNew(t): false;
+				case EDisplay(_,_), EDisplayNew(_): false;
 				default: true;
 			});
 	}
@@ -96,5 +96,132 @@ class Helper {
 			case EDisplayNew(t): true;
 			case ETernary(econd, eif, eelse): traverse(econd,callb,preorder) && traverse(eif,callb,preorder) && traverse(eelse,callb,preorder);
 		}) && (preorder ? true : callb(expr));
+	}
+	
+	#if macro
+	/**
+	 * Get Type of a ComplexType.
+	 * @param	com
+	 * @param	pos		You can simply feed Context.currentPos().
+	 * @return			Type of the ComplexType.
+	 */
+	static public function toType(com:ComplexType, pos:Position):Type {
+		//{var $testType:{{com}}; testType;}
+		var testType = { expr:EBlock([ { expr:EVars( [ { name: "$testType", type: com, expr: null } ] ), pos:pos }, { expr:EConst(CIdent("$testType")), pos:pos } ]), pos:pos };
+		return Context.typeof(testType);
+	}
+	#end
+	
+	public static function getFullyQualifiedName(type:BaseType):String {
+		return type.pack.join(".") + (type.pack.length > 0 ? "." : "") + type.name;
+    }
+	
+	static public function toComplexType(t:Null<Type>):Null<ComplexType> {
+		return t == null ? null : switch(t) {
+			case TMono: 
+				null;
+			case TEnum(t, params):
+				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.map(function(p) return TPType(toComplexType(p))).array()} );
+			case TInst(t, params):
+				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.map(function(p) return TPType(toComplexType(p))).array()} );
+			case TType(t, params): 
+				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.map(function(p) return TPType(toComplexType(p))).array()} );
+			case TFun(args, ret): 
+				TFunction( args.map(function(a) return toComplexType(a.t)).array(), toComplexType(ret) );
+			case TAnonymous(a): //TODO
+				/*
+					var a:{
+						private var a:Int;
+						public var b(default,null):Int;
+						var c:Int;
+						public function d(dd:Int):String;
+					};
+					
+					//TAnonymous
+					{ 
+						fields: 
+						[ 
+							{ 
+								type: TInst(Int, []), 
+								name: a, 
+								params: [], 
+								expr: null, 
+								kind: FVar(AccNormal, AccNormal), 
+								pos: pos, 
+								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
+								isPublic: false 
+							}, 
+							{ 
+								type: TInst(Int, []), 
+								name: b, 
+								params: [], 
+								expr: null, 
+								kind: FVar(AccNormal, AccNo), 
+								pos: pos, 
+								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
+								isPublic: true }, 
+							{ 
+								type: TInst(Int, []), 
+								name: c, 
+								params: [], 
+								expr: null, 
+								kind: FVar(AccNormal, AccNormal), 
+								pos: pos, 
+								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
+								isPublic: true 
+							},
+							{ 
+								type: TFun([ { opt: false, name: dd, t: TInst(Int, []) } ], TInst(String, [])), 
+								name: d, 
+								params: [], 
+								expr: null, 
+								kind: FMethod(MethNormal), 
+								pos: pos, 
+								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
+								isPublic: true 
+							}
+						]
+					}
+				*/
+				TAnonymous( a.get().fields.map(
+					function(cf:ClassField):haxe.macro.Expr.Field {
+						return { 
+							name: cf.name, 
+							isPublic: cf.isPublic, 
+							type: switch(cf.type) {
+								case TFun(args, ret): 
+									FFun( args.map(function(a) return { name: a.name, opt: a.opt, type: toComplexType(a.t) } ).array(), toComplexType(ret) );
+								default:
+									FVar(toComplexType(cf.type));
+							}, 
+							pos: cf.pos 
+						}
+					}).array()
+				);
+			case TDynamic(t): 
+				TPath( { sub: null, name: "Dynamic", pack: [], params: [TPType(toComplexType(t))] } );
+		}
+	}
+	
+	@:macro static public function dumpExpr(e:Expr) {
+		return return { expr:EConst(CString(Std.string(e))), pos:Context.currentPos() };
+	}
+	
+	@:macro static public function dumpType(e:Expr) {
+		var type = switch(e.expr) { 
+			case EConst(c): 
+				switch(c) {
+					case CType(s): Context.getType(s);
+					default: Context.typeof(e);
+				}
+			default: Context.typeof(e);
+		}
+		
+		var str = switch (type) {
+			case TAnonymous(a): "TAnonymous(" + Std.string(a.get()) + ")";
+			default: Std.string(type);
+		}
+		
+		return { expr:EConst(CString(str)), pos:Context.currentPos() };
 	}
 }

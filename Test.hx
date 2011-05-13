@@ -4,9 +4,37 @@ import hxLINQ.LINQ;
 using hxLINQ.LINQ;
 using Lambda;
 
-class Test {
+import hxLINQ.macro.Helper;
+using hxLINQ.macro.Helper;
+
+class Test extends haxe.unit.TestCase {
+	public function new() { super(); }
+	
+	public function testToComplexType():Void {
+		var a:{
+			private var a:Int;
+			public var b(default,null):Int;
+			var c:Int;
+			public function d(dd:Int):String;
+		};
+		var b:Dynamic;
+		trace(Helper.dumpType(a));
+		
+		
+		
+		trace(Helper.dumpType(b));
+		
+		trace(Std.string({
+			a:1,
+			b:1,
+			c:1
+		}));
+	}
+	
 	static function main():Void {
-		trace(["abc"].linq().where(function (i,n) return true).dump());
+		var runner = new haxe.unit.TestRunner();
+		runner.add(new Test());
+		runner.run();
 	}
 }
 /*

@@ -15,8 +15,10 @@ import haxe.macro.Context;
 
 import hxLINQ.macro.Helper;
 using hxLINQ.macro.Helper;
+using Type;
 #end
 
+using Std;
 using Lambda;
 
 class LINQtoArray {
@@ -304,7 +306,22 @@ class LINQ<T> {
 	}
 	*/
 	@:macro static public function where<T>(linq:ExprRequire<LINQ<T>>, clause:ExprRequire < T->Int->Bool > ) {
-		return clause.hasEDisplay() ? clause : linq;
+		if (clause.hasEDisplay()) {
+			switch(clause.expr) { 
+				case EFunction(func):
+					if (func.ret == null)
+						func.ret = TPath( { sub:null, name: "Bool", pack: [], params: [] } );
+					else 
+						if (Context.follow(func.ret.toType(clause.pos)).string() != Context.getType("Bool").string())
+							throw "clause should return Bool.";
+							
+					//if (func.args.length > 0) throw Context.typeof(linq).string();//switch(Context.typeof(linq)) {default: throw }
+				default: return clause;
+			};
+			
+			return clause;
+		}
+		return linq;
 	}
 	
 	@:macro static public function toArray<T>(linq:ExprRequire<LINQ<T>>) {
@@ -312,10 +329,10 @@ class LINQ<T> {
 		return linq;
 	}
 	
-	@:macro static public function dump(linq:ExprRequire<LINQ<Dynamic>>) {
+	@:macro static public function dump(linq:Expr) {
 		var pos = Context.currentPos();
 		//return { expr:EConst(CString(linq.toECallArray().map(Helper.getECallFieldName).join(","))), pos:pos };
-		return { expr:EConst(CString(Std.string(linq.toECallArray().map(Helper.getECallParams).join("\n")))), pos:pos };
+		return { expr:EConst(CString(Std.string(linq))), pos:pos };
 	}
 }
 /*
