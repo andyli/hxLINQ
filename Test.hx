@@ -21,7 +21,6 @@ class Test extends haxe.unit.TestCase {
 		trace(Helper.dumpType(a));
 		
 		
-		
 		trace(Helper.dumpType(b));
 		
 		trace(Std.string({
@@ -35,6 +34,8 @@ class Test extends haxe.unit.TestCase {
 		var runner = new haxe.unit.TestRunner();
 		runner.add(new Test());
 		runner.run();
+		trace(Helper.dumpExpr({var a:{private var a:Int;};})); //error: Invalid_argument(_)
+
 	}
 }
 /*

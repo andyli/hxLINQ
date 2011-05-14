@@ -79,6 +79,7 @@ class Helper {
 			case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder));
 			case EUnop(p, postFix, e): traverse(e,callb,preorder);
 			case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder));
+			//case EFunction(n,f): traverse(f.expr,callb,preorder);
 			case EFunction(f): traverse(f.expr,callb,preorder);
 			case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder));
 			case EFor(v, it, expr): traverse(it,callb,preorder) && traverse(expr,callb,preorder);
@@ -182,29 +183,43 @@ class Helper {
 							}
 						]
 					}
-				*/
+				*
 				TAnonymous( a.get().fields.map(
 					function(cf:ClassField):haxe.macro.Expr.Field {
 						return { 
 							name: cf.name, 
-							isPublic: cf.isPublic, 
-							type: switch(cf.type) {
+							doc: null,
+							access: [],
+							kind: switch(cf.type) {
 								case TFun(args, ret): 
-									FFun( args.map(function(a) return { name: a.name, opt: a.opt, type: toComplexType(a.t) } ).array(), toComplexType(ret) );
+									FFun( {
+										args: args.map(function(a) return 
+											{ 
+												name: a.name, 
+												opt: a.opt, 
+												type: toComplexType(a.t),
+												value: null
+											} 
+										).array(),
+										ret: toComplexType(ret),
+										expr: null,
+										params: []
+									} );
 								default:
-									FVar(toComplexType(cf.type));
+									FVar(toComplexType(cf.type), null);
 							}, 
-							pos: cf.pos 
+							pos: cf.pos,
+							meta: []
 						}
 					}).array()
-				);
+				); */ null;
 			case TDynamic(t): 
 				TPath( { sub: null, name: "Dynamic", pack: [], params: [TPType(toComplexType(t))] } );
 		}
 	}
 	
 	@:macro static public function dumpExpr(e:Expr) {
-		return return { expr:EConst(CString(Std.string(e))), pos:Context.currentPos() };
+		return { expr:EConst(CString(Std.string(e))), pos:Context.currentPos() };
 	}
 	
 	@:macro static public function dumpType(e:Expr) {

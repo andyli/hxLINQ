@@ -308,7 +308,7 @@ class LINQ<T> {
 	@:macro static public function where<T>(linq:ExprRequire<LINQ<T>>, clause:ExprRequire < T->Int->Bool > ) {
 		if (clause.hasEDisplay()) {
 			switch(clause.expr) { 
-				case EFunction(func):
+				case EFunction(name, func):
 					if (func.ret == null)
 						func.ret = TPath( { sub:null, name: "Bool", pack: [], params: [] } );
 					else 
@@ -327,12 +327,6 @@ class LINQ<T> {
 	@:macro static public function toArray<T>(linq:ExprRequire<LINQ<T>>) {
 		var pos = Context.currentPos();
 		return linq;
-	}
-	
-	@:macro static public function dump(linq:Expr) {
-		var pos = Context.currentPos();
-		//return { expr:EConst(CString(linq.toECallArray().map(Helper.getECallFieldName).join(","))), pos:pos };
-		return { expr:EConst(CString(Std.string(linq))), pos:pos };
 	}
 }
 /*
