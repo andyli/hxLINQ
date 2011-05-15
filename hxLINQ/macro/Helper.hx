@@ -103,10 +103,11 @@ class Helper {
 	/**
 	 * Get Type of a ComplexType.
 	 * @param	com
-	 * @param	pos		You can simply feed Context.currentPos().
+	 * @param	pos		Default to Context.currentPos().
 	 * @return			Type of the ComplexType.
 	 */
-	static public function toType(com:ComplexType, pos:Position):Type {
+	static public function toType(com:ComplexType, ?pos:Position):Type {
+		if (pos == null) pos = Context.currentPos();
 		//{var $testType:{{com}}; testType;}
 		var testType = { expr:EBlock([ { expr:EVars( [ { name: "$testType", type: com, expr: null } ] ), pos:pos }, { expr:EConst(CIdent("$testType")), pos:pos } ]), pos:pos };
 		return Context.typeof(testType);

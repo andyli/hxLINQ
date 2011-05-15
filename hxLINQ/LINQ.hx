@@ -308,14 +308,31 @@ class LINQ<T> {
 	@:macro static public function where<T>(linq:ExprRequire<LINQ<T>>, clause:ExprRequire < T->Int->Bool > ) {
 		if (clause.hasEDisplay()) {
 			switch(clause.expr) { 
-				case EFunction(name, func):
+				case EFunction(func): //case EFunction(name, func):
+					/*
+					 * Infer T->Int->Bool to clause.
+					 */
+					
 					if (func.ret == null)
 						func.ret = TPath( { sub:null, name: "Bool", pack: [], params: [] } );
 					else 
-						if (Context.follow(func.ret.toType(clause.pos)).string() != Context.getType("Bool").string())
+						if (Context.follow(func.ret.toType()).string() != Context.getType("Bool").string())
 							throw "clause should return Bool.";
-							
-					//if (func.args.length > 0) throw Context.typeof(linq).string();//switch(Context.typeof(linq)) {default: throw }
+					
+					var linqType = switch(Context.typeof(linq)) { case TInst(t, params): params[0]; default: throw "linq should be TInst(LINQ,[...])"; }
+					if (func.args.length > 0)
+						if (func.args[0].type == null)
+							func.args[0].type = linqType.toComplexType();
+						else 
+							if (Context.follow(func.args[0].type.toType()).string() != Context.follow(linqType).string())
+								throw func.args[0].name + " of clause should be " + linqType.string() + ".";
+					
+					if (func.args.length > 1)
+						if (func.args[1].type == null)
+							func.args[1].type = TPath( { sub:null, name: "Int", pack: [], params: [] } );
+						else
+							if (Context.follow(func.ret.toType()).string() != Context.getType("Int").string())
+								throw "clause should be T->Int->Bool.";
 				default: return clause;
 			};
 			
