@@ -8,35 +8,13 @@ using Math;
 import hxLINQ.macro.Helper;
 using hxLINQ.macro.Helper;
 
-class Test extends haxe.unit.TestCase {
-	public function new() { super(); }
-	
-	public function testToComplexType():Void {
-		[123].linq().where(function(i, n) return true).toArray();
-		/*
-		var a:{
-			private var a:Int;
-			public var b(default,null):Int;
-			var c:Int;
-			public function d(dd:Int):String;
-		};
-		var b:Dynamic;
-		trace(Helper.dumpType(a));
-		
-		
-		trace(Helper.dumpType(b));
-		
-		trace(Std.string({
-			a:1,
-			b:1,
-			c:1
-		}));*/
-	}
-	
+typedef A = Array<String>;
+
+class Test {
 	static function main():Void {
-		var runner = new haxe.unit.TestRunner();
-		runner.add(new Test());
-		runner.run();
+		var a:A;
+		trace(a.linq().where(function(i, n) return i.charAt(0) == "a").toArray());
+		//trace(new LINQ([123]).where(function(i, n) return true).toArray());
 	}
 }
 /*

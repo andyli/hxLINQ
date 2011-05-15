@@ -79,7 +79,7 @@ class Helper {
 			case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder));
 			case EUnop(p, postFix, e): traverse(e,callb,preorder);
 			case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder));
-			//case EFunction(n,f): traverse(f.expr,callb,preorder);
+			//case EFunction(n,f): traverse(f.expr,callb,preorder); //for haxe r3807 and beyond
 			case EFunction(f): traverse(f.expr,callb,preorder);
 			case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder));
 			case EFor(v, it, expr): traverse(it,callb,preorder) && traverse(expr,callb,preorder);
@@ -112,12 +112,50 @@ class Helper {
 		var testType = { expr:EBlock([ { expr:EVars( [ { name: "$testType", type: com, expr: null } ] ), pos:pos }, { expr:EConst(CIdent("$testType")), pos:pos } ]), pos:pos };
 		return Context.typeof(testType);
 	}
+	
+	static public function getItrItemType(dataType:Type, ?pos:Position):Type {
+		if (pos == null) pos = Context.currentPos();
+		
+		var itemIterType = Context.typeof( 
+			{ 
+				expr:ECall( 
+					{ 
+						expr: EField(
+							{ 
+								expr: EBlock([ 
+									{ 
+										expr:EVars( [ { name: "$testType", type: toComplexType(dataType), expr: null } ] ), 
+										pos:pos 
+									}, 
+									{ 
+										expr:EConst(CIdent("$testType")), 
+										pos:pos 
+									}
+								]), 
+								pos: pos 
+							}, 
+							"iterator"
+						), 
+						pos: pos 
+					},
+					[]
+				), 
+				pos:pos 
+			}
+		);
+		
+		return switch(itemIterType) { case TType(t, params): params[0]; default: throw "not an Iteractor??"; }
+	}
 	#end
 	
 	public static function getFullyQualifiedName(type:BaseType):String {
 		return type.pack.join(".") + (type.pack.length > 0 ? "." : "") + type.name;
     }
 	
+	/*
+	 * Turns a Type into a ComplexType.
+	 * TODO: TAnonymous is not supported yet.
+	 */
 	static public function toComplexType(t:Null<Type>):Null<ComplexType> {
 		return t == null ? null : switch(t) {
 			case TMono: 
@@ -219,11 +257,17 @@ class Helper {
 		}
 	}
 	
+	/*
+	 * Return a String dump of the input Expr.
+	 */
 	@:macro static public function dumpExpr(e:Expr) {
 		return { expr:EConst(CString(Std.string(e))), pos:Context.currentPos() };
 	}
 	
-	@:macro static public function dumpType(e:Expr) {
+	/*
+	 * Return a String dump of the Type of input Expr.
+	 */
+	@:macro static public function dumpType(e:Expr, ?follow:Bool = false, ?details:Bool = false) {
 		var type = switch(e.expr) { 
 			case EConst(c): 
 				switch(c) {
@@ -233,8 +277,13 @@ class Helper {
 			default: Context.typeof(e);
 		}
 		
-		var str = switch (type) {
+		if (follow) type = Context.follow(type);
+		
+		var str = !details ? Std.string(type) : switch (type) {
 			case TAnonymous(a): "TAnonymous(" + Std.string(a.get()) + ")";
+			case TEnum(t, params): "TEnum(" + Std.string(t.get()) + ", " + Std.string(params) + ")";
+			case TInst(t, params): "TInst(" + Std.string(t.get()) + ", " + Std.string(params) + ")";
+			case TType(t, params): "TType(" + Std.string(t.get()) + ", " + Std.string(params) + ")";
 			default: Std.string(type);
 		}
 		

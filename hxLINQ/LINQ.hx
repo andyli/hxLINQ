@@ -21,27 +21,58 @@ using Type;
 using Std;
 using Lambda;
 
-class LINQtoArray {
-	static public function linq<T>(dataItems:Array<T>) {
-		return new LINQ<T>(dataItems);
+/**
+ * D is the data source type, for example Array<String>.
+ * I is the item type, for example if D is Array<String>, I would be String.
+ */
+class LINQ<D,I> {
+	@:macro static public function linq(data:ExprRequire<Iterable<Dynamic>>) {
+		var dataType = Context.typeof(data);
+		
+		/*
+		 * Check if data is actually an Array.
+		 * It is because Array<BaseType> is Iterable<Null<BaseType>>, but we want BaseType instead of Null<BaseType>.
+		 */
+		switch(Context.follow(dataType)) {
+			case TInst(t, params): 
+				if (t.get().name == "Array" && t.get().pack.length == 0)
+					return { 
+						expr: ENew( 
+							{ 
+								sub: null, 
+								name: "LINQ", 
+								pack: [], 
+								params: [
+									TPType(dataType.toComplexType()), 
+									TPType(params[0].toComplexType())
+								] 
+							},
+							[data]
+						), 
+						pos: Context.currentPos() 
+					}
+			default:
+		}
+		
+		return { 
+			expr: ENew( 
+				{ 
+					sub: null, 
+					name: "LINQ", 
+					pack: [], 
+					params: [
+						TPType(dataType.toComplexType()), 
+						TPType(dataType.getItrItemType().toComplexType())
+					] 
+				},
+				[data]
+			), 
+			pos: Context.currentPos() 
+		};
 	}
-}
-
-class LINQtoIterable {
-	static public function linq<T>(dataItems:Iterable<T>) {
-		return new LINQ<T>(dataItems);
-	}
-}
-
-class LINQtoIterator {
-	static public function linq<T>(dataItems:Iterator<T>) {
-		return new LINQ<T>(dataItems);
-	}
-}
-
-class LINQ<T> {
-	public function new(?array:Array<T>, ?iterable:Iterable<T>, ?iterator:Iterator<T>):Void {
-		throw "LINQ instence can't be used in runtime.";
+	
+	public function new(?data:D):Void {
+		throw "LINQ instence can't be used in runtime. You should call for example toArray() after creating it.";
 	}
 
 	/*
@@ -305,7 +336,8 @@ class LINQ<T> {
 		return new LINQ(newList);
 	}
 	*/
-	@:macro static public function where<T>(linq:ExprRequire<LINQ<T>>, clause:ExprRequire < T->Int->Bool > ) {
+	
+	@:macro static public function where<D,I>(linq:ExprRequire<LINQ<D,I>>, clause:ExprRequire < I->Int->Bool > ):ExprRequire<LINQ<D,I>> {
 		if (clause.hasEDisplay()) {
 			switch(clause.expr) { 
 				case EFunction(func): //case EFunction(name, func):
@@ -313,19 +345,50 @@ class LINQ<T> {
 					 * Infer T->Int->Bool to clause.
 					 */
 					
+					var pos = clause.pos;
+					
 					if (func.ret == null)
 						func.ret = TPath( { sub:null, name: "Bool", pack: [], params: [] } );
 					else 
 						if (Context.follow(func.ret.toType()).string() != Context.getType("Bool").string())
 							throw "clause should return Bool.";
 					
-					var linqType = switch(Context.typeof(linq)) { case TInst(t, params): params[0]; default: throw "linq should be TInst(LINQ,[...])"; }
+					var dataType = switch(Context.typeof(linq)) { case TInst(t, params): params[0]; default: throw "linq should be TInst(LINQ,[...])"; }
+					var itemIterType = Context.typeof( 
+						{ 
+							expr:ECall( 
+								{ 
+									expr: EField(
+										{ 
+											expr: EBlock([ 
+												{ 
+													expr: EVars( [ { name: "$testType", type: dataType.toComplexType(), expr: null } ] ), 
+													pos: pos
+												}, 
+												{ 
+													expr: EConst(CIdent("$testType")), 
+													pos: pos
+												}
+											]), 
+											pos: pos
+										}, 
+										"iterator"
+									), 
+									pos: pos
+								},
+								[]
+							), 
+							pos: pos
+						}
+					);
+					var itemType = getItemType(linq);
+					
 					if (func.args.length > 0)
 						if (func.args[0].type == null)
-							func.args[0].type = linqType.toComplexType();
+							func.args[0].type = itemType.toComplexType();
 						else 
-							if (Context.follow(func.args[0].type.toType()).string() != Context.follow(linqType).string())
-								throw func.args[0].name + " of clause should be " + linqType.string() + ".";
+							if (Context.follow(func.args[0].type.toType()).string() != Context.follow(itemType).string())
+								throw func.args[0].name + " of clause should be " + itemType.string() + ".";
 					
 					if (func.args.length > 1)
 						if (func.args[1].type == null)
@@ -333,7 +396,7 @@ class LINQ<T> {
 						else
 							if (Context.follow(func.ret.toType()).string() != Context.getType("Int").string())
 								throw "clause should be T->Int->Bool.";
-				default: return clause;
+				default:
 			};
 			
 			return clause;
@@ -341,10 +404,25 @@ class LINQ<T> {
 		return linq;
 	}
 	
-	@:macro static public function toArray<T>(linq:ExprRequire<LINQ<T>>) {
+	@:macro static public function toArray<D,I>(linq:ExprRequire<LINQ<D,I>>):ExprRequire<Array<I>> {
 		var pos = Context.currentPos();
-		return linq;
+		
+		var eCalls = linq.toECallArray();
+		
+		return { expr:EConst(CString(eCalls.map(Helper.getECallFieldName).join(","))), pos:pos };
 	}
+	
+	/*
+	 * Internal helpers.
+	 */
+	#if macro
+	/*
+	 * Get I from a LINQ Expr
+	 */
+	static function getItemType<D,I>(linq:ExprRequire<LINQ<D,I>>) {
+		return switch(Context.typeof(linq)) { case TInst(t, params): params[1]; default: throw "linq should be TInst(LINQ,[...])"; }
+	}
+	#end
 }
 /*
 private class OrderedLINQ<T> extends LINQ<T> {
