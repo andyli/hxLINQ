@@ -1,23 +1,13 @@
 import hxLINQ.LINQ;
 
-import hxLINQ.LINQ;
 using hxLINQ.LINQ;
-using Lambda;
-using Math;
-
-import hxLINQ.macro.Helper;
-using hxLINQ.macro.Helper;
-
-typedef A = Array<String>;
 
 class Test<T> {
 	public function new() {
 		
 	}
 	static function main():Void {
-		trace(Helper.dumpExpr(-a.pop(), b));
-		var a:A;
-		trace(a.linq().where(function(i, n) return i.charAt(0) == "a").toArray());
+		trace(["a"].linq().where(function(i, n) return i.charAt(0) == "a").toArray());
 		//trace(new LINQ([123]).where(function(i, n) return true).toArray());
 	}
 }

@@ -189,6 +189,13 @@ class Helper {
 			}
 		);
 	}
+	
+	/*
+	 * Get I from a LINQ Expr
+	 */
+	public static function getItemType<D,I>(linq:ExprRequire<LINQ<D,I>>) {
+		return switch(Context.follow(Context.typeof(linq))) { case TInst(t, params): params[1]; default: throw "linq should be TInst(LINQ,[...])"; }
+	}
 	#end
 	
 	public static function getFullyQualifiedName(type:BaseType):String {

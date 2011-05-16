@@ -15,11 +15,11 @@ import haxe.macro.Context;
 
 import hxLINQ.macro.Helper;
 using hxLINQ.macro.Helper;
-using Type;
-#end
 
 using Std;
 using Lambda;
+#end
+
 
 /*
  * For LINQ, Array is not a case of Iterable.
@@ -91,10 +91,60 @@ using Lambda;
 	}
 }
 
+@:macro class LINQmethod {
+	static public function where<D,I>(linq:ExprRequire<LINQ<D,I>>, clause:ExprRequire < I->Int->Bool > ):ExprRequire<LINQ<D,I>> {
+		if (clause.hasEDisplay()) {
+			switch(clause.expr) { 
+				case EFunction(name, func):
+					/*
+					 * Infer T->Int->Bool to clause.
+					 */
+					
+					var pos = clause.pos;
+					
+					if (func.ret == null)
+						func.ret = TPath( { sub:null, name: "Bool", pack: [], params: [] } );
+					else 
+						if (Context.follow(func.ret.toType()).string() != Context.getType("Bool").string())
+							throw "clause should return Bool.";
+					
+					var itemType = linq.getItemType();
+					
+					if (func.args.length > 0)
+						if (func.args[0].type == null)
+							func.args[0].type = itemType.toComplexType();
+						else 
+							if (Context.follow(func.args[0].type.toType()).string() != Context.follow(itemType).string())
+								throw func.args[0].name + " of clause should be " + itemType.string() + ".";
+					
+					if (func.args.length > 1)
+						if (func.args[1].type == null)
+							func.args[1].type = TPath( { sub:null, name: "Int", pack: [], params: [] } );
+						else
+							if (Context.follow(func.ret.toType()).string() != Context.getType("Int").string())
+								throw "clause should be T->Int->Bool.";
+				default:
+			};
+			
+			return clause;
+		}
+		return linq;
+	}
+	
+	static public function toArray<D,I>(linq:ExprRequire<LINQ<D,I>>):ExprRequire<Array<I>> {
+		var pos = Context.currentPos();
+		
+		var eCalls = linq.toECallArray();
+		
+		return { expr:EConst(CString(eCalls.map(Helper.getECallFieldName).join(","))), pos:pos };
+	}
+}
+
 /**
  * D is the data source type, for example Array<String>.
  * I is the item type, for example if D is Array<String>, I would be String.
  */
+#if !debug extern #end 
 class LINQ<D,I> {	
 	public function new(?data:D):Void {
 		throw "LINQ instence can't be used in runtime. You should call for example toArray() after creating it.";
@@ -361,65 +411,6 @@ class LINQ<D,I> {
 		return new LINQ(newList);
 	}
 	*/
-	
-	@:macro static public function where<D,I>(linq:ExprRequire<LINQ<D,I>>, clause:ExprRequire < I->Int->Bool > ):ExprRequire<LINQ<D,I>> {
-		if (clause.hasEDisplay()) {
-			switch(clause.expr) { 
-				case EFunction(name, func):
-					/*
-					 * Infer T->Int->Bool to clause.
-					 */
-					
-					var pos = clause.pos;
-					
-					if (func.ret == null)
-						func.ret = TPath( { sub:null, name: "Bool", pack: [], params: [] } );
-					else 
-						if (Context.follow(func.ret.toType()).string() != Context.getType("Bool").string())
-							throw "clause should return Bool.";
-					
-					var itemType = getItemType(linq);
-					
-					if (func.args.length > 0)
-						if (func.args[0].type == null)
-							func.args[0].type = itemType.toComplexType();
-						else 
-							if (Context.follow(func.args[0].type.toType()).string() != Context.follow(itemType).string())
-								throw func.args[0].name + " of clause should be " + itemType.string() + ".";
-					
-					if (func.args.length > 1)
-						if (func.args[1].type == null)
-							func.args[1].type = TPath( { sub:null, name: "Int", pack: [], params: [] } );
-						else
-							if (Context.follow(func.ret.toType()).string() != Context.getType("Int").string())
-								throw "clause should be T->Int->Bool.";
-				default:
-			};
-			
-			return clause;
-		}
-		return linq;
-	}
-	
-	@:macro static public function toArray<D,I>(linq:ExprRequire<LINQ<D,I>>):ExprRequire<Array<I>> {
-		var pos = Context.currentPos();
-		
-		var eCalls = linq.toECallArray();
-		
-		return { expr:EConst(CString(eCalls.map(Helper.getECallFieldName).join(","))), pos:pos };
-	}
-	
-	/*
-	 * Internal helpers.
-	 */
-	#if macro
-	/*
-	 * Get I from a LINQ Expr
-	 */
-	static function getItemType<D,I>(linq:ExprRequire<LINQ<D,I>>) {
-		return switch(Context.follow(Context.typeof(linq))) { case TInst(t, params): params[1]; default: throw "linq should be TInst(LINQ,[...])"; }
-	}
-	#end
 }
 /*
 private class OrderedLINQ<T> extends LINQ<T> {
@@ -474,7 +465,6 @@ private class OrderedLINQ<T> extends LINQ<T> {
 		return new OrderedLINQ(tempArray, _sortFns);
 	}
 }
-*/
 
 interface IGrouping<K,V> {
 	public var key(default,null):K;
@@ -499,3 +489,5 @@ private class Grouping<K,V> implements IGrouping<K,V> {
 		return values.iterator();
 	}
 }
+
+*/
