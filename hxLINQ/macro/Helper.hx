@@ -260,7 +260,7 @@ class Helper {
 	/*
 	 * Return a String dump of the input Expr.
 	 */
-	@:macro static public function dumpExpr(e:Expr) {
+	@:macro static public function dumpExpr(e:Array<Expr>) {
 		return { expr:EConst(CString(Std.string(e))), pos:Context.currentPos() };
 	}
 	

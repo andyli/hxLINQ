@@ -12,6 +12,7 @@ typedef A = Array<String>;
 
 class Test {
 	static function main():Void {
+		trace(Helper.dumpExpr(-a.pop(), b));
 		var a:A;
 		trace(a.linq().where(function(i, n) return i.charAt(0) == "a").toArray());
 		//trace(new LINQ([123]).where(function(i, n) return true).toArray());
