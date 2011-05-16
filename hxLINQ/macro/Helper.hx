@@ -79,8 +79,7 @@ class Helper {
 			case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder));
 			case EUnop(p, postFix, e): traverse(e,callb,preorder);
 			case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder));
-			//case EFunction(n,f): traverse(f.expr,callb,preorder); //for haxe r3807 and beyond
-			case EFunction(f): traverse(f.expr,callb,preorder);
+			case EFunction(n,f): traverse(f.expr,callb,preorder); //case EFunction(f): traverse(f.expr,callb,preorder); //for haxe eariler than r3807
 			case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder));
 			case EFor(v, it, expr): traverse(it,callb,preorder) && traverse(expr,callb,preorder);
 			case EIf(econd, eif, eelse): traverse(econd,callb,preorder) && traverse(eif,callb,preorder) && traverse(eelse,callb,preorder);
@@ -116,12 +115,13 @@ class Helper {
 	static public function getItrItemType(dataType:Type, ?pos:Position):Type {
 		if (pos == null) pos = Context.currentPos();
 		
-		var itemIterType = Context.typeof( 
+		//{var $testType:{{dataType}}; testType;}.next()
+		return Context.typeof( 
 			{ 
-				expr:ECall( 
+				expr: ECall( 
 					{ 
 						expr: EField(
-							{ 
+							{
 								expr: EBlock([ 
 									{ 
 										expr:EVars( [ { name: "$testType", type: toComplexType(dataType), expr: null } ] ), 
@@ -134,17 +134,60 @@ class Helper {
 								]), 
 								pos: pos 
 							}, 
-							"iterator"
+							"next"
 						), 
 						pos: pos 
 					},
 					[]
 				), 
-				pos:pos 
+				pos:pos
 			}
 		);
+	}
+	
+	static public function getItrblItemType(dataType:Type, ?pos:Position):Type {
+		if (pos == null) pos = Context.currentPos();
 		
-		return switch(itemIterType) { case TType(t, params): params[0]; default: throw "not an Iteractor??"; }
+		//{var $testType:{{dataType}}; testType;}.iterator().next()
+		return Context.typeof( 
+			{ 
+				expr:ECall( 
+					{ 
+						expr: EField(
+							{ 
+								expr: ECall( 
+									{ 
+										expr: EField(
+											{ 
+												expr: EBlock([ 
+													{ 
+														expr:EVars( [ { name: "$testType", type: toComplexType(dataType), expr: null } ] ), 
+														pos:pos 
+													}, 
+													{ 
+														expr:EConst(CIdent("$testType")), 
+														pos:pos 
+													}
+												]), 
+												pos: pos 
+											}, 
+											"iterator"
+										), 
+										pos: pos 
+									},
+									[]
+								), 
+								pos:pos
+							}, 
+							"next"
+						), 
+						pos: pos
+					},
+					[]
+				),
+				pos:pos
+			}
+		);
 	}
 	#end
 	
@@ -157,17 +200,17 @@ class Helper {
 	 * TODO: TAnonymous is not supported yet.
 	 */
 	static public function toComplexType(t:Null<Type>):Null<ComplexType> {
-		return t == null ? null : switch(t) {
+		var ct = t == null ? null : switch(t) {
 			case TMono: 
 				null;
 			case TEnum(t, params):
-				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.map(function(p) return TPType(toComplexType(p))).array()} );
+				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.exists(function(p) return toComplexType(p) == null) ? [] : params.map(function(p) return TPType(toComplexType(p))).array()} );
 			case TInst(t, params):
-				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.map(function(p) return TPType(toComplexType(p))).array()} );
+				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.exists(function(p) return toComplexType(p) == null) ? [] : params.map(function(p) return TPType(toComplexType(p))).array()} );
 			case TType(t, params): 
-				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.map(function(p) return TPType(toComplexType(p))).array()} );
+				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.exists(function(p) return toComplexType(p) == null) ? [] : params.map(function(p) return TPType(toComplexType(p))).array()} );
 			case TFun(args, ret): 
-				TFunction( args.map(function(a) return toComplexType(a.t)).array(), toComplexType(ret) );
+				TFunction( args.exists(function(a) return toComplexType(a.t) == null) ? [] : args.map(function(a) return toComplexType(a.t)).array(), toComplexType(ret) );
 			case TAnonymous(a): //TODO
 				/*
 					var a:{
@@ -253,7 +296,25 @@ class Helper {
 					}).array()
 				); */ null;
 			case TDynamic(t): 
-				TPath( { sub: null, name: "Dynamic", pack: [], params: [TPType(toComplexType(t))] } );
+				TPath( { sub: null, name: "Dynamic", pack: [], params: t == null ? [] : [TPType(toComplexType(t))] } );
+		}
+		
+		try {
+			#if macro toType(ct); #end
+			return ct;
+		} catch (e:Dynamic) {
+			switch (ct) {
+				case TPath(p): 
+					p.pack = []; 
+					try {
+						#if macro toType(ct); #end
+						return ct;
+					} catch (e:Dynamic) {
+						return null;
+					}
+				default: 
+					return null;
+			}
 		}
 	}
 	

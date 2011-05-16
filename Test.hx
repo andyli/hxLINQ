@@ -10,7 +10,10 @@ using hxLINQ.macro.Helper;
 
 typedef A = Array<String>;
 
-class Test {
+class Test<T> {
+	public function new() {
+		
+	}
 	static function main():Void {
 		trace(Helper.dumpExpr(-a.pop(), b));
 		var a:A;
