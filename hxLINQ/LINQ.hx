@@ -135,8 +135,101 @@ using Lambda;
 		var pos = Context.currentPos();
 		
 		var eCalls = linq.toECallArray();
+		var dataExpr; //Expr of data source
+		var dataI = eCalls.length; //index of dataExpr in eCalls
+		while (--dataI >= 0) {
+			if (["linq", "where"].indexOf(eCalls[dataI].getECallFieldName()) == -1) {
+				dataExpr = switch(eCalls[dataI].expr) {
+					//new LINQ(data)
+					case ENew(t, params): params[0];
+					
+					//data.linq()
+					default: eCalls[dataI]; 
+				}
+				break;
+			}
+		}
 		
-		return { expr:EConst(CString(eCalls.map(Helper.getECallFieldName).join(","))), pos:pos };
+		/*
+		var dataType = linq.getDataType();
+		var dataIsArray = switch(Context.follow(dataType)) {
+			case TInst(t, params): t.get().name == "Array" && t.get().pack.length == 0;
+			default: false;
+		}*/
+		
+		var wheres = eCalls.filter(function(e) return e.getECallFieldName() == "where");
+		var needCounter = false;
+		if (wheres.length > 0) {
+			var econd;
+			for (w in wheres) {
+				if (econd == null) {
+					switch(w.expr) {
+						case ECall(e, params):
+							switch(params[0].expr) { //clause
+								case EFunction(name, f):
+									if (!needCounter && f.args.length >= 2) { //need counter
+										needCounter = true;
+										//TO-DO
+									}
+								default: throw "Accept function only at this moment.";
+							};
+						default: throw "why not a ECall here?";
+					}
+				}
+			}
+		}
+		
+		var econd = { expr:EConst(CIdent("true")), pos:pos };
+		var vars = [ { name:"__r", type:null, expr: { expr:EArrayDecl([]), pos:pos } } ];
+		
+		
+		var loopBlockExprs = 
+			[
+				{
+					expr: EIf(
+						econd, 
+						//__r.push(__itm);
+						{
+							expr: ECall(
+								{ expr: EField( { expr:EConst(CIdent("__r")), pos:pos }, "push"), pos:pos },
+								[ { expr:EConst(CIdent("__itm")), pos:pos } ]
+							),
+							pos:pos
+						}, 
+						null
+					),
+					pos:pos
+				}
+			];
+						
+		if (needCounter) {
+			vars.push( { name:"__i", type:null, expr: { expr:EConst(CInt("0")), pos:pos } } );
+			
+			loopBlockExprs.push(
+				//++__i;
+				{
+					expr: EUnop(OpIncrement, false, { expr:EConst(CIdent("__i")), pos:pos } ),
+					pos:pos
+				}
+			);
+		}
+		
+		return {
+			expr: EBlock([
+				{ expr: EVars(vars), pos:pos },
+				//for (__itm in @dataExpr)
+				{
+					expr: EFor("__itm", dataExpr, {
+						expr: EBlock(loopBlockExprs),
+						pos:pos
+					}),
+					pos:pos
+				},
+				//__r;
+				{ expr: EConst(CIdent("__r")), pos:pos }
+			]),
+			pos:pos
+		};
 	}
 }
 
@@ -146,7 +239,7 @@ using Lambda;
  */
 #if !debug extern #end 
 class LINQ<D,I> {	
-	public function new(?data:D):Void {
+	public function new(data:D):Void {
 		throw "LINQ instence can't be used in runtime. You should call for example toArray() after creating it.";
 	}
 

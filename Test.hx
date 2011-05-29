@@ -1,13 +1,10 @@
 import hxLINQ.LINQ;
-
 using hxLINQ.LINQ;
 
-class Test<T> {
-	public function new() {
-		
-	}
+class Test {
 	static function main():Void {
-		trace(["a"].linq().where(function(i, n) return i.charAt(0) == "a").toArray());
+		trace([123].linq().where(function(i, n) return i.charAt(0) == "a").toArray());
+		//trace(Helper.dumpExpr(1 && 2 && 3 || 4));
 		//trace(new LINQ([123]).where(function(i, n) return true).toArray());
 	}
 }

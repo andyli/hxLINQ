@@ -13,7 +13,6 @@ class Helper {
 	static public function toECallArray(expr:Expr, ?output:Array<Expr>):Array<Expr> {
 		if (output == null) output = [];
 		
-		output.push(expr);
 		switch(expr.expr) {
 			case ECall(e, params): 
 				switch(e.expr) {
@@ -23,6 +22,7 @@ class Helper {
 				}
 			default:
 		}
+		output.push(expr);
 		return output;
 	}
 	
@@ -61,7 +61,7 @@ class Helper {
 	/**
 	 * Traverse the Expr recusively.
 	 * @param	expr
-	 * @param	callb				Accepts a Null<Expr> and return if the traversal should be continued.
+	 * @param	callb				Accepts a Null<Expr> and return true if the traversal should be continued.
 	 * @param	?preorder = true	Should the traversal run in preorder or postorder.
 	 * @return						Did the traversal reach the end, ie. hadn't stopped by callb.
 	 */
@@ -196,6 +196,13 @@ class Helper {
 	public static function getItemType<D,I>(linq:ExprRequire<LINQ<D,I>>) {
 		return switch(Context.follow(Context.typeof(linq))) { case TInst(t, params): params[1]; default: throw "linq should be TInst(LINQ,[...])"; }
 	}
+	
+	/*
+	 * Get D from a LINQ Expr
+	 */
+	public static function getDataType<D,I>(linq:ExprRequire<LINQ<D,I>>) {
+		return switch(Context.follow(Context.typeof(linq))) { case TInst(t, params): params[0]; default: throw "linq should be TInst(LINQ,[...])"; }
+	}
 	#end
 	
 	public static function getFullyQualifiedName(type:BaseType):String {
@@ -306,15 +313,16 @@ class Helper {
 				TPath( { sub: null, name: "Dynamic", pack: [], params: t == null ? [] : [TPType(toComplexType(t))] } );
 		}
 		
+		#if macro
 		try {
-			#if macro toType(ct); #end
+			toType(ct); //throw error if the type is not found
 			return ct;
 		} catch (e:Dynamic) {
 			switch (ct) {
 				case TPath(p): 
-					p.pack = []; 
+					p.pack = []; //for cases of t is a type param. eg. static function myMethod<T>() {  }
 					try {
-						#if macro toType(ct); #end
+						toType(ct);
 						return ct;
 					} catch (e:Dynamic) {
 						return null;
@@ -323,6 +331,9 @@ class Helper {
 					return null;
 			}
 		}
+		#else
+		return ct;
+		#end
 	}
 	
 	/*
