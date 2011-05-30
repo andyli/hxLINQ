@@ -19,7 +19,7 @@
   <build>
     <option directives="" />
     <option flashStrict="False" />
-    <option mainClass="Test" />
+    <option mainClass="hxLINQ.test.TestAll" />
     <option enabledebug="False" />
     <option additional="" />
   </build>

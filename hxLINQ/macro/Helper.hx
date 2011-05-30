@@ -79,7 +79,7 @@ class Helper {
 			case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder));
 			case EUnop(p, postFix, e): traverse(e,callb,preorder);
 			case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder));
-			case EFunction(n,f): traverse(f.expr,callb,preorder); //case EFunction(f): traverse(f.expr,callb,preorder); //for haxe eariler than r3807
+			case EFunction(n, f): traverse(f.expr, callb, preorder) && f.args.foreach(function(a) return traverse(a.value, callb, preorder));
 			case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder));
 			case EFor(v, it, expr): traverse(it,callb,preorder) && traverse(expr,callb,preorder);
 			case EIf(econd, eif, eelse): traverse(econd,callb,preorder) && traverse(eif,callb,preorder) && traverse(eelse,callb,preorder);
@@ -96,6 +96,98 @@ class Helper {
 			case EDisplayNew(t): true;
 			case ETernary(econd, eif, eelse): traverse(econd,callb,preorder) && traverse(eif,callb,preorder) && traverse(eelse,callb,preorder);
 		}) && (preorder ? true : callb(expr));
+	}
+	
+	/*
+	 * Deep clone an Expr.
+	 */
+	static public function clone(expr:Null<Expr>):Null<Expr> {
+		return expr == null? null : switch (expr.expr) {
+			case EConst(c): 
+				{ expr:EConst(c), pos:expr.pos };
+			case EArray(e1, e2): 
+				{ expr:EArray(clone(e1), clone(e2)), pos:expr.pos };
+			case EBinop(op, e1, e2): 
+				{ expr:EBinop(op, clone(e1), clone(e2)), pos:expr.pos };
+			case EField(e, field): 
+				{ expr:EField(clone(e), field), pos:expr.pos };
+			case EType(e, field): 
+				{ expr:EType(clone(e), field), pos:expr.pos };
+			case EParenthesis(e): 
+				{ expr:EParenthesis(clone(e)), pos:expr.pos };
+			case EObjectDecl(fields):
+				var newfields = [];
+				for (f in fields) newfields.push({ field:f.field, expr:clone(f.expr) });
+				{ expr:EObjectDecl(newfields), pos:expr.pos };
+			case EArrayDecl(values):
+				var newvalues = [];
+				for (v in values) newvalues.push(clone(v));
+				{ expr:EArrayDecl(newvalues), pos:expr.pos };
+			case ECall(e, params):
+				var newparams = [];
+				for (p in params) newparams.push(clone(p));
+				{ expr:ECall(clone(e),newparams), pos:expr.pos };
+			case ENew(t, params):
+				var newparams = [];
+				for (p in params) newparams.push(clone(p));
+				{ expr:ENew(Reflect.copy(t),newparams), pos:expr.pos };
+			case EUnop(p, postFix, e): 
+				{ expr:EUnop(p, postFix, clone(e)), pos:expr.pos };
+			case EVars(vars): 
+				var newvars = [];
+				for (v in vars) newvars.push( { name:v.name, type:Reflect.copy(v.type), expr:clone(v.expr) } );
+				{ expr:EVars(newvars), pos:expr.pos };
+			case EFunction(n, f):
+				var newf = {
+					args: [],
+					ret: Reflect.copy(f.ret),
+					expr: clone(f.expr),
+					params: []
+				}
+				for (a in f.args) newf.args.push( { name:a.name, opt:a.opt, type:a.type, value:clone(a.value) } );
+				for (p in f.params) newf.params.push( { name:p.name, constraints:p.constraints.copy() } );
+				{ expr:EFunction(n, newf), pos:expr.pos };
+			case EBlock(exprs):
+				var newexprs = [];
+				for (e in newexprs) newexprs.push(clone(e));
+				{ expr:EBlock(newexprs), pos:expr.pos };
+			case EFor(v, it, expr):
+				{ expr:EFor(v, clone(it), clone(expr)), pos:expr.pos };
+			case EIf(econd, eif, eelse):
+				{ expr:EIf(clone(econd), clone(eif), clone(eelse)), pos:expr.pos };
+			case EWhile(econd, e, normalWhile):
+				{ expr:EWhile(clone(econd), clone(e), normalWhile), pos:expr.pos };
+			case ESwitch(e, cases, edef):
+				var newcases = [];
+				for (c in cases) {
+					var newvalues = [];
+					for (v in c.values) newvalues.push(clone(v));
+					newcases.push( { values:newvalues, expr:clone(c.expr) } );
+				}
+				{ expr:ESwitch(clone(e), newcases, clone(edef)), pos:expr.pos };
+			case ETry(e, catches):
+				var newcatches = [];
+				for (c in catches) newcatches.push( { name:c.name, type:c.type, expr:clone(c.expr) } );
+				{ expr:ETry(clone(e), newcatches), pos:expr.pos };
+			case EReturn(e):
+				{ expr:EReturn(clone(e)), pos:expr.pos };
+			case EBreak: 
+				{ expr:EBreak, pos:expr.pos };
+			case EContinue: 
+				{ expr:EContinue, pos:expr.pos };
+			case EUntyped(e): 
+				{ expr:EUntyped(clone(e)), pos:expr.pos };
+			case EThrow(e):
+				{ expr:EThrow(clone(e)), pos:expr.pos };
+			case ECast(e, t):
+				{ expr:ECast(clone(e), t), pos:expr.pos };
+			case EDisplay(e, isCall):
+				{ expr:EDisplay(clone(e), isCall), pos:expr.pos };
+			case EDisplayNew(t):
+				{ expr:EDisplayNew(t), pos:expr.pos };
+			case ETernary(econd, eif, eelse):
+				{ expr:ETernary(clone(econd), clone(eif), clone(eelse)), pos:expr.pos };
+		}
 	}
 	
 	#if macro
