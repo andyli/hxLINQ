@@ -1,13 +1,15 @@
 package hxLINQ.macro;
 
+import haxe.macro.Context;
 import haxe.macro.Expr;
 
 class Inline 
 {
-	@:macro static public function eFunctionToEBlock(e:Expr):Expr {
+	@:macro static public function eFunctionToEBlock(e:Expr):Expr {		
 		switch(e.expr) {
 			case EFunction(name, f):
-				if (countEReturn(e) != 1) return throw "Function should have 1 return.";
+				if (isReturnVoid(e) && countEReturn(f.expr) == 0) return f.expr; 
+				if (!isFinalReturn(f.expr)) return throw "Cannot inline a not final return.";
 				
 				if (f.args.length == 0) {
 					return removeEReturn(f.expr);
@@ -26,16 +28,108 @@ class Inline
 		}
 	}
 	
+	static public function isFinalReturn(expr:Null<Expr>):Bool {
+		if (expr == null) return false;
+		
+		switch (expr.expr) {
+			case EConst(c): 
+				return false;
+			case EArray(e1, e2): 
+				return false;
+			case EBinop(op, e1, e2): 
+				return false;
+			case EField(e, field): 
+				return false;
+			case EType(e, field): 
+				return false;
+			case EParenthesis(e): 
+				return isFinalReturn(e);
+			case EObjectDecl(fields):
+				return false;
+			case EArrayDecl(values):
+				return false;
+			case ECall(e, params):
+				return false;
+			case ENew(t, params):
+				return false;
+			case EUnop(p, postFix, e): 
+				return false;
+			case EVars(vars): 
+				return false;
+			case EFunction(n, f):
+				return false;
+			case EBlock(exprs):
+				for (i in 0...exprs.length - 1) if (countEReturn(exprs[i]) > 0) return false;
+				return isFinalReturn(exprs[exprs.length-1]);
+			case EFor(v, it, expr):
+				return false;
+			case EIf(econd, eif, eelse):
+				return isFinalReturn(eif) && isFinalReturn(eelse);
+			case EWhile(econd, e, normalWhile):
+				return false;
+			case ESwitch(e, cases, edef):
+				if (edef != null && !isFinalReturn(edef)) return false;
+				for (c in cases) if (!isFinalReturn(c.expr)) return false;
+				return true;
+			case ETry(e, catches):
+				return false; //TODO
+			case EReturn(e):
+				return countEReturn(e) == 0;
+			case EBreak: 
+				return false;
+			case EContinue: 
+				return false;
+			case EUntyped(e): 
+				return isFinalReturn(e);
+			case EThrow(e):
+				return false;
+			case ECast(e, t):
+				return false;
+			case EDisplay(e, isCall):
+				return false;
+			case EDisplayNew(t):
+				return false;
+			case ETernary(econd, eif, eelse):
+				return isFinalReturn(eif) && isFinalReturn(eelse);
+		}
+	}
+	
 	static public function countEReturn(expr:Null<Expr>):Int {
 		var num = 0;
 		Helper.traverse(expr, function(e) {
 			if (e != null) switch(e.expr) {
 				case EReturn(e): ++num;
+				case EFunction(name, f): num -= countEReturn(f.expr);
 				default:
 			}
 			return true;
 		});
 		return num;
+	}
+	
+	static public function isReturnVoid(expr:Null<Expr>):Bool {
+		#if macro
+		try {
+			switch (Context.typeof(expr)) {
+				case TFun(args, ret):
+					switch (ret) {
+						case TEnum(t, params): if (t.get().name == "Void") return true;
+						default:
+					}
+				default:
+			}
+		} catch (e:Dynamic) {}
+		#end
+		switch(expr.expr) {
+			case EFunction(name, f):
+				if (f.ret != null) switch(f.ret) {
+					case TPath(p):
+						if (p.name == "Void" && p.pack.length == 0) return true;
+					default:
+				}
+			default: return throw "Not a function.";
+		}
+		return false;
 	}
 	
 	/*
@@ -89,7 +183,7 @@ class Inline
 				{ expr:EFunction(n, newf), pos:expr.pos };
 			case EBlock(exprs):
 				var newexprs = [];
-				for (e in newexprs) newexprs.push(removeEReturn(e));
+				for (e in exprs) newexprs.push(removeEReturn(e));
 				{ expr:EBlock(newexprs), pos:expr.pos };
 			case EFor(v, it, expr):
 				{ expr:EFor(v, removeEReturn(it), removeEReturn(expr)), pos:expr.pos };
@@ -110,7 +204,7 @@ class Inline
 				for (c in catches) newcatches.push( { name:c.name, type:c.type, expr:removeEReturn(c.expr) } );
 				{ expr:ETry(removeEReturn(e), newcatches), pos:expr.pos };
 			case EReturn(e):
-				removeEReturn(e);
+				e == null ? { expr:EConst(CIdent("null")), pos:expr.pos } : removeEReturn(e);
 			case EBreak: 
 				{ expr:EBreak, pos:expr.pos };
 			case EContinue: 
