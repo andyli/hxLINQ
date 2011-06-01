@@ -135,12 +135,12 @@ class Helper {
 				{ expr:EUnop(p, postFix, clone(e)), pos:expr.pos };
 			case EVars(vars): 
 				var newvars = [];
-				for (v in vars) newvars.push( { name:v.name, type:Reflect.copy(v.type), expr:clone(v.expr) } );
+				for (v in vars) newvars.push( { name:v.name, type:v.type, expr:clone(v.expr) } );
 				{ expr:EVars(newvars), pos:expr.pos };
 			case EFunction(n, f):
 				var newf = {
 					args: [],
-					ret: Reflect.copy(f.ret),
+					ret: f.ret,
 					expr: clone(f.expr),
 					params: []
 				}

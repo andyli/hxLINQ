@@ -5,7 +5,19 @@ import haxe.macro.Expr;
 
 class Inline 
 {
-	@:macro static public function eFunctionToEBlock(e:Expr):Expr {		
+	@:macro static public function eFunctionToEBlock(e:Expr, ?arguments:ExprRequire<Array<Dynamic>>):Expr {
+		var args = arguments == null ? [] : switch(arguments.expr) {
+			case EArrayDecl(values): values;
+			case EConst(c): 
+				switch(c) { 
+					case CIdent(s): 
+						s == "null" ? [] : return throw "Needs arguments in [arg0, arg1, ...] form.";
+					default:
+						return throw "Needs arguments in [arg0, arg1, ...] form.";
+				}
+			default: return throw "Needs arguments in [arg0, arg1, ...] form.";
+		}
+		
 		switch(e.expr) {
 			case EFunction(name, f):
 				if (isReturnVoid(e) && countEReturn(f.expr) == 0) return f.expr; 
@@ -15,7 +27,10 @@ class Inline
 					return removeEReturn(f.expr);
 				} else {
 					var vars = [];
-					for (a in f.args) vars.push({ name:a.name, type:a.type, expr:a.value });
+					for (i in 0...f.args.length) {
+						var a = f.args[i];
+						vars.push({ name:a.name, type:a.type, expr: i < args.length ? args[i] : a.value });
+					}
 					return {
 						expr:EBlock([
 							{expr:EVars(vars), pos:e.pos },
@@ -169,13 +184,13 @@ class Inline
 				{ expr:EUnop(p, postFix, removeEReturn(e)), pos:expr.pos };
 			case EVars(vars): 
 				var newvars = [];
-				for (v in vars) newvars.push( { name:v.name, type:Reflect.copy(v.type), expr:removeEReturn(v.expr) } );
+				for (v in vars) newvars.push( { name:v.name, type:v.type, expr:removeEReturn(v.expr) } );
 				{ expr:EVars(newvars), pos:expr.pos };
 			case EFunction(n, f):
 				var newf = {
 					args: [],
-					ret: Reflect.copy(f.ret),
-					expr: removeEReturn(f.expr),
+					ret: f.ret,
+					expr: f.expr,
 					params: []
 				}
 				for (a in f.args) newf.args.push( { name:a.name, opt:a.opt, type:a.type, value:removeEReturn(a.value) } );

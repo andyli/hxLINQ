@@ -25,6 +25,12 @@ class TestMacroInline extends TestCase
 		assertEquals(null, Inline.eFunctionToEBlock(function() return));
 	}
 	
+	public function testWithArgs():Void {
+		assertEquals(123, Inline.eFunctionToEBlock(function(_) return _, [123]));
+		
+		assertEquals(123, Inline.eFunctionToEBlock(function(_ = 456) return _, [123]));
+	}
+	
 	public function testComplexReturn():Void {
 		var a = 123, b = 456;
 		assertEquals(123, Inline.eFunctionToEBlock(function() return true ? a : b));
@@ -33,5 +39,28 @@ class TestMacroInline extends TestCase
 		assertEquals(123, Inline.eFunctionToEBlock(function() if (true) return a; else return b));
 		
 		assertEquals(null, Inline.eFunctionToEBlock(function() if (true) return; else return));
+	}
+	
+	public function testInlineWithLocalFunction():Void {
+		var a = 123;
+		
+		assertEquals(123, Inline.eFunctionToEBlock(function() {
+			var localFunction = function () { }
+			return a;
+		}));
+	
+		assertEquals(123, Inline.eFunctionToEBlock(function() {
+			var localFunction = function () { return a; }
+			return localFunction();
+		}));
+	
+		assertEquals(456, Inline.eFunctionToEBlock(function() {
+			return function (a = 456) { return a; }();
+		}));
+		
+		assertEquals(456, Inline.eFunctionToEBlock(function() {
+			function test0() { return 456; }
+			return test0;
+		})());
 	}
 }
