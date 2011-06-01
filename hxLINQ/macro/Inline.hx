@@ -179,7 +179,13 @@ class Inline
 			case ENew(t, params):
 				var newparams = [];
 				for (p in params) newparams.push(removeEReturn(p));
-				{ expr:ENew(Reflect.copy(t),newparams), pos:expr.pos };
+				var newt = {
+					pack: t.pack.copy(),
+					name: t.name,
+					params: t.params.copy(),
+					sub: t.sub
+				}
+				{ expr:ENew(newt,newparams), pos:expr.pos };
 			case EUnop(p, postFix, e): 
 				{ expr:EUnop(p, postFix, removeEReturn(e)), pos:expr.pos };
 			case EVars(vars): 
