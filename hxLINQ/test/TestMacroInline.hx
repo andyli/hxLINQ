@@ -20,6 +20,8 @@ class TestMacroInline extends TestCase
 		
 		assertEquals(456, Inline.eFunctionToEBlock(function(a) { a = 456; return a; } ));
 		
+		assertEquals(456, Inline.eFunctionToEBlock(function(a) { a = 456; return a; }, [123]));
+		
 		assertEquals(123, a);
 		
 		assertEquals(null, Inline.eFunctionToEBlock(function() return));
@@ -27,6 +29,8 @@ class TestMacroInline extends TestCase
 	
 	public function testWithArgs():Void {
 		assertEquals(123, Inline.eFunctionToEBlock(function(_) return _, [123]));
+		
+		assertEquals(246, Inline.eFunctionToEBlock(function(_) return _ * 2, [123]));
 		
 		assertEquals(123, Inline.eFunctionToEBlock(function(_ = 456) return _, [123]));
 	}
