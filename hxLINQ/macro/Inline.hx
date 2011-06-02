@@ -224,7 +224,7 @@ class Inline
 	
 	static public function countIdent(expr:Null<Expr>, name:String):Int {
 		var num = 0;
-		Helper.traverse(expr, function(e) {
+		Helper.traverse(expr, function(e,s) {
 			if (e != null) switch(e.expr) {
 				case EConst(c): 
 					switch(c) {
@@ -244,7 +244,7 @@ class Inline
 	 */
 	static public function countEReturn(expr:Null<Expr>):Int {
 		var num = 0;
-		Helper.traverse(expr, function(e) {
+		Helper.traverse(expr, function(e,s) {
 			if (e != null) switch(e.expr) {
 				case EReturn(e): ++num;
 				case EFunction(name, f): return TCNoChildren;

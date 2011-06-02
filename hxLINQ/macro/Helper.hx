@@ -16,59 +16,66 @@ class Helper {
 	/**
 	 * Traverse the Expr recusively.
 	 * @param	expr
-	 * @param	callb				Accepts a Null<Expr> and return true if the traversal should be continued.
+	 * @param	callb				Accepts a Null<Expr> and a stack(List<Expr> using push/pop, first is current), return true if the traversal should be continued.
 	 * @param	?preorder = true	Should the traversal run in preorder or postorder.
 	 * @return						Did the traversal reach the end, ie. hadn't stopped by TCExit.
 	 */
-	static public function traverse(expr:Null<Expr>, callb:Null<Expr>->TraverseControl, ?preorder = true):Bool {
+	static public function traverse(expr:Null<Expr>, callb:Null<Expr>->List<Expr>->TraverseControl, ?preorder:Bool = true, ?stack:List<Expr>):Bool {
+		if (stack == null) stack = new List();
+		stack.push(expr);
+		
+		var ret:Bool;
 		try {
-			return 
-				(preorder ? switch (callb(expr)) {
+			ret = 
+				(preorder ? switch (callb(expr,stack)) {
 						case TCContinue: true;
 						case TCNoChildren: throw TCNoChildren;
 						case TCExit: false;
 					} : true) 
 				&& (expr == null ? true : switch (expr.expr) {
 						case EConst(c): true;
-						case EArray(e1, e2): traverse(e1,callb,preorder) && traverse(e2,callb,preorder);
-						case EBinop(op, e1, e2): traverse(e1,callb,preorder) && traverse(e2,callb,preorder);
-						case EField(e, field): traverse(e,callb,preorder);
-						case EType(e, field): traverse(e,callb,preorder);
-						case EParenthesis(e): traverse(e,callb,preorder);
-						case EObjectDecl(fields): fields.foreach(function(f) return traverse(f.expr,callb,preorder));
-						case EArrayDecl(values): values.foreach(function(v) return traverse(v,callb,preorder));
-						case ECall(e, params): traverse(e,callb,preorder) && params.foreach(function(v) return traverse(v,callb,preorder));
-						case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder));
-						case EUnop(p, postFix, e): traverse(e,callb,preorder);
-						case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder));
+						case EArray(e1, e2): traverse(e1,callb,preorder,stack) && traverse(e2,callb,preorder,stack);
+						case EBinop(op, e1, e2): traverse(e1,callb,preorder,stack) && traverse(e2,callb,preorder,stack);
+						case EField(e, field): traverse(e,callb,preorder,stack);
+						case EType(e, field): traverse(e,callb,preorder,stack);
+						case EParenthesis(e): traverse(e,callb,preorder,stack);
+						case EObjectDecl(fields): fields.foreach(function(f) return traverse(f.expr,callb,preorder,stack));
+						case EArrayDecl(values): values.foreach(function(v) return traverse(v,callb,preorder,stack));
+						case ECall(e, params): traverse(e,callb,preorder,stack) && params.foreach(function(v) return traverse(v,callb,preorder,stack));
+						case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder,stack));
+						case EUnop(p, postFix, e): traverse(e,callb,preorder,stack);
+						case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder,stack));
 						case EFunction(n, f): traverse(f.expr, callb, preorder) && f.args.foreach(function(a) return traverse(a.value, callb, preorder));
-						case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder));
-						case EFor(v, it, expr): traverse(it,callb,preorder) && traverse(expr,callb,preorder);
-						case EIf(econd, eif, eelse): traverse(econd,callb,preorder) && traverse(eif,callb,preorder) && traverse(eelse,callb,preorder);
-						case EWhile(econd, e, normalWhile): traverse(econd,callb,preorder) && traverse(e,callb,preorder);
-						case ESwitch(e, cases, edef): traverse(e,callb,preorder) && cases.foreach(function(c) return c.values.foreach(function(v) return traverse(v,callb,preorder)) && traverse(expr,callb,preorder)) && traverse(edef,callb,preorder);
-						case ETry(e, catches): traverse(e,callb,preorder) && catches.foreach(function(c) return traverse(c.expr,callb,preorder));
-						case EReturn(e): traverse(e,callb,preorder);
+						case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder,stack));
+						case EFor(v, it, expr): traverse(it,callb,preorder,stack) && traverse(expr,callb,preorder,stack);
+						case EIf(econd, eif, eelse): traverse(econd,callb,preorder,stack) && traverse(eif,callb,preorder,stack) && traverse(eelse,callb,preorder,stack);
+						case EWhile(econd, e, normalWhile): traverse(econd,callb,preorder,stack) && traverse(e,callb,preorder,stack);
+						case ESwitch(e, cases, edef): traverse(e,callb,preorder,stack) && cases.foreach(function(c) return c.values.foreach(function(v) return traverse(v,callb,preorder,stack)) && traverse(expr,callb,preorder,stack)) && traverse(edef,callb,preorder,stack);
+						case ETry(e, catches): traverse(e,callb,preorder,stack) && catches.foreach(function(c) return traverse(c.expr,callb,preorder,stack));
+						case EReturn(e): traverse(e,callb,preorder,stack);
 						case EBreak: true;
 						case EContinue: true;
-						case EUntyped(e): traverse(e,callb,preorder);
-						case EThrow(e): traverse(e,callb,preorder);
-						case ECast(e,t): traverse(e,callb,preorder);
-						case EDisplay(e, isCall): traverse(e,callb,preorder);
+						case EUntyped(e): traverse(e,callb,preorder,stack);
+						case EThrow(e): traverse(e,callb,preorder,stack);
+						case ECast(e,t): traverse(e,callb,preorder,stack);
+						case EDisplay(e, isCall): traverse(e,callb,preorder,stack);
 						case EDisplayNew(t): true;
-						case ETernary(econd, eif, eelse): traverse(econd,callb,preorder) && traverse(eif,callb,preorder) && traverse(eelse,callb,preorder);
+						case ETernary(econd, eif, eelse): traverse(econd,callb,preorder,stack) && traverse(eif,callb,preorder,stack) && traverse(eelse,callb,preorder,stack);
 					}) 
-				&& (preorder ? true : switch (callb(expr)) {
+				&& (preorder ? true : switch (callb(expr,stack)) {
 						case TCContinue: true;
 						case TCExit: false;
-						case TCNoChildren: throw "TCNoChildren has no effect on postorder traversal";
+						case TCNoChildren: throw #if debug "TCNoChildren has no effect on postorder traversal." #else TCNoChildren #end ;
 					});
 		} catch (tc:TraverseControl) {
-			return switch(tc) {
+			ret = switch(tc) {
 				case TCNoChildren: true;
 				default: throw tc;
 			}
 		}
+		
+		stack.pop();
+		return ret;
 	}
 	
 	/*
@@ -116,7 +123,7 @@ class Helper {
 	 */
 	static public function hasEDisplay(expr:Expr):Bool {
 		return !traverse(expr, 
-			function(e) return expr == null ? TCContinue : switch(e.expr) {
+			function(e,s) return expr == null ? TCContinue : switch(e.expr) {
 				case EDisplay(_,_), EDisplayNew(_): TCExit;
 				default: TCContinue;
 			});
