@@ -16,7 +16,7 @@ class Helper {
 	/**
 	 * Traverse the Expr recusively.
 	 * @param	expr
-	 * @param	callb				Accepts a Null<Expr> and a stack(List<Expr> using push/pop, first is current), return true if the traversal should be continued.
+	 * @param	callb				Accepts a Null<Expr> and a stack(List<Expr> using push/pop, first is current), return a TraverseControl.
 	 * @param	?preorder = true	Should the traversal run in preorder or postorder.
 	 * @param	?getChildrenFunc	Default to getChildren.
 	 * @param	?stack				Internal use to maintain the travesal stack to pass to callb.
@@ -52,6 +52,9 @@ class Helper {
 		return ret;
 	}
 	
+	/**
+	 * Return an Array of Expr that the input holds.
+	 */
 	static public function getChildren(expr:Null<Expr>):Array<Null<Expr>> {
 		return expr == null ? [] : switch (expr.expr) {
 			case EConst(c): [];
@@ -137,9 +140,10 @@ class Helper {
 	}
 	
 	/**
-	 * Recursivly reconstruct an Expr.
+	 * Recursivly reconstruct an Expr with postorder traversal.
 	 * @param	expr
-	 * @param	callb
+	 * @param	callb	Accepts a Null<Expr> and a stack(List<Expr> using push/pop, first is current), return a Null<Expr> that replace the input.
+	 * @param	?stack	Internal use to maintain the travesal stack to pass to callb.
 	 * @return			A new reconstructed Expr.
 	 */
 	static public function reconstruct(expr:Null<Expr>, callb:Null<Expr>->List<Expr>->Null<Expr>, ?stack:List<Expr>):Null<Expr> {
