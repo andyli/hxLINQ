@@ -29,18 +29,18 @@ class Inline
 				if (f.args.length == 0) {
 					return removeEReturn(f.expr);
 				} else {
-					var hasVarBeUsedTwice = false;
+					var hasComplexVarBeUsedTwice = false;
 					var hasVarBeModified = false;
 					var vars = [];
 					for (i in 0...f.args.length) {
 						var a = f.args[i];
-						vars.push( { name:a.name, type:a.type, expr: i < args.length ? args[i] : a.value } );
-						
-						if (!hasVarBeUsedTwice && countIdent(f.expr, a.name) > 1) hasVarBeUsedTwice = true;
+						var v = { name:a.name, type:a.type, expr: i < args.length ? args[i] : a.value };
+						vars.push(v);
+						if (!hasComplexVarBeUsedTwice && !isExprSimple(v.expr) && countIdent(f.expr, a.name) > 1) hasComplexVarBeUsedTwice = true;
 						if (!hasVarBeModified && isVarBeModified(f.expr, a.name)) hasVarBeModified = true;
 					}
 					
-					if (hasVarBeUsedTwice || hasVarBeModified){
+					if (hasComplexVarBeUsedTwice || hasVarBeModified){
 						return {
 							expr:EBlock([
 								{expr:EVars(vars), pos:e.pos },
@@ -58,6 +58,16 @@ class Inline
 					}
 				}
 			default: return throw "Accept EFunction only.";
+		}
+	}
+	
+	static public function isExprSimple(expr:Null<Expr>):Bool {
+		return expr == null ? true : switch (expr.expr) {
+			case EConst(c): switch(c) {
+				case CInt(_), CFloat(_), CString(_), CIdent(_), CType(_): true;
+				default: false;
+			}
+			default: false;
 		}
 	}
 	
