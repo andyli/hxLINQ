@@ -123,103 +123,14 @@ class Inline
 	}
 	
 	static public function replaceIdent(expr:Null<Expr>, find:String, replace:Null<Expr>):Null<Expr> {
-		return expr == null? null : switch (expr.expr) {
+		return Helper.reconstruct(expr, function(e) return e == null? null : switch (e.expr) {
 			case EConst(c): 
 				switch(c) {
-					case CIdent(s):
-						s == find ? replace : { expr:EConst(c), pos:expr.pos };
-					default:
-						{ expr:EConst(c), pos:expr.pos };
+					case CIdent(s): s == find ? replace : e;
+					default: e;
 				}
-			case EArray(e1, e2): 
-				{ expr:EArray(replaceIdent(e1, find, replace), replaceIdent(e2, find, replace)), pos:expr.pos };
-			case EBinop(op, e1, e2): 
-				{ expr:EBinop(op, replaceIdent(e1, find, replace), replaceIdent(e2, find, replace)), pos:expr.pos };
-			case EField(e, field): 
-				{ expr:EField(replaceIdent(e, find, replace), field), pos:expr.pos };
-			case EType(e, field): 
-				{ expr:EType(replaceIdent(e, find, replace), field), pos:expr.pos };
-			case EParenthesis(e): 
-				{ expr:EParenthesis(replaceIdent(e, find, replace)), pos:expr.pos };
-			case EObjectDecl(fields):
-				var newfields = [];
-				for (f in fields) newfields.push({ field:f.field, expr:replaceIdent(f.expr, find, replace) });
-				{ expr:EObjectDecl(newfields), pos:expr.pos };
-			case EArrayDecl(values):
-				var newvalues = [];
-				for (v in values) newvalues.push(replaceIdent(v, find, replace));
-				{ expr:EArrayDecl(newvalues), pos:expr.pos };
-			case ECall(e, params):
-				var newparams = [];
-				for (p in params) newparams.push(replaceIdent(p, find, replace));
-				{ expr:ECall(replaceIdent(e, find, replace),newparams), pos:expr.pos };
-			case ENew(t, params):
-				var newparams = [];
-				for (p in params) newparams.push(replaceIdent(p, find, replace));
-				var newt = {
-					pack: t.pack.copy(),
-					name: t.name,
-					params: t.params.copy(),
-					sub: t.sub
-				}
-				{ expr:ENew(newt,newparams), pos:expr.pos };
-			case EUnop(p, postFix, e): 
-				{ expr:EUnop(p, postFix, replaceIdent(e, find, replace)), pos:expr.pos };
-			case EVars(vars): 
-				var newvars = [];
-				for (v in vars) newvars.push( { name:v.name, type:v.type, expr:replaceIdent(v.expr, find, replace) } );
-				{ expr:EVars(newvars), pos:expr.pos };
-			case EFunction(n, f):
-				var newf = {
-					args: [],
-					ret: f.ret,
-					expr: f.expr,
-					params: []
-				}
-				for (a in f.args) newf.args.push( { name:a.name, opt:a.opt, type:a.type, value:replaceIdent(a.value, find, replace) } );
-				for (p in f.params) newf.params.push( { name:p.name, constraints:p.constraints.copy() } );
-				{ expr:EFunction(n, newf), pos:expr.pos };
-			case EBlock(exprs):
-				var newexprs = [];
-				for (e in exprs) newexprs.push(replaceIdent(e, find, replace));
-				{ expr:EBlock(newexprs), pos:expr.pos };
-			case EFor(v, it, expr):
-				{ expr:EFor(v, replaceIdent(it, find, replace), replaceIdent(expr, find, replace)), pos:expr.pos };
-			case EIf(econd, eif, eelse):
-				{ expr:EIf(replaceIdent(econd, find, replace), replaceIdent(eif, find, replace), replaceIdent(eelse, find, replace)), pos:expr.pos };
-			case EWhile(econd, e, normalWhile):
-				{ expr:EWhile(replaceIdent(econd, find, replace), replaceIdent(e, find, replace), normalWhile), pos:expr.pos };
-			case ESwitch(e, cases, edef):
-				var newcases = [];
-				for (c in cases) {
-					var newvalues = [];
-					for (v in c.values) newvalues.push(replaceIdent(v, find, replace));
-					newcases.push( { values:newvalues, expr:replaceIdent(c.expr, find, replace) } );
-				}
-				{ expr:ESwitch(replaceIdent(e, find, replace), newcases, replaceIdent(edef, find, replace)), pos:expr.pos };
-			case ETry(e, catches):
-				var newcatches = [];
-				for (c in catches) newcatches.push( { name:c.name, type:c.type, expr:replaceIdent(c.expr, find, replace) } );
-				{ expr:ETry(replaceIdent(e, find, replace), newcatches), pos:expr.pos };
-			case EReturn(e):
-				e == null ? { expr:EConst(CIdent("null")), pos:expr.pos } : replaceIdent(e, find, replace);
-			case EBreak: 
-				{ expr:EBreak, pos:expr.pos };
-			case EContinue: 
-				{ expr:EContinue, pos:expr.pos };
-			case EUntyped(e): 
-				{ expr:EUntyped(replaceIdent(e, find, replace)), pos:expr.pos };
-			case EThrow(e):
-				{ expr:EThrow(replaceIdent(e, find, replace)), pos:expr.pos };
-			case ECast(e, t):
-				{ expr:ECast(replaceIdent(e, find, replace), t), pos:expr.pos };
-			case EDisplay(e, isCall):
-				{ expr:EDisplay(replaceIdent(e, find, replace), isCall), pos:expr.pos };
-			case EDisplayNew(t):
-				{ expr:EDisplayNew(t), pos:expr.pos };
-			case ETernary(econd, eif, eelse):
-				{ expr:ETernary(replaceIdent(econd, find, replace), replaceIdent(eif, find, replace), replaceIdent(eelse, find, replace)), pos:expr.pos };
-		}
+			default: e;
+		});
 	}
 	
 	static public function countIdent(expr:Null<Expr>, name:String):Int {
