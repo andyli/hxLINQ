@@ -142,35 +142,38 @@ class Helper {
 	 * @param	callb
 	 * @return			A new reconstructed Expr.
 	 */
-	static public function reconstruct(expr:Null<Expr>, callb:Null<Expr>->Null<Expr>):Null<Expr> {
-		return expr == null ? callb(null) : callb(switch (expr.expr) {
+	static public function reconstruct(expr:Null<Expr>, callb:Null<Expr>->List<Expr>->Null<Expr>, ?stack:List<Expr>):Null<Expr> {
+		if (stack == null) stack = new List();
+		stack.push(expr);
+		
+		var r = expr == null ? callb(null,stack) : callb(switch (expr.expr) {
 			case EConst(c): 
 				expr;
 			case EArray(e1, e2): 
-				{ expr:EArray(reconstruct(e1,callb), reconstruct(e2,callb)), pos:expr.pos };
+				{ expr:EArray(reconstruct(e1,callb,stack), reconstruct(e2,callb,stack)), pos:expr.pos };
 			case EBinop(op, e1, e2):
-				{ expr:EBinop(op, reconstruct(e1,callb), reconstruct(e2,callb)), pos:expr.pos };
+				{ expr:EBinop(op, reconstruct(e1,callb,stack), reconstruct(e2,callb,stack)), pos:expr.pos };
 			case EField(e, field): 
-				{ expr:EField(reconstruct(e,callb), field), pos:expr.pos };
+				{ expr:EField(reconstruct(e,callb,stack), field), pos:expr.pos };
 			case EType(e, field): 
-				{ expr:EType(reconstruct(e,callb), field), pos:expr.pos };
+				{ expr:EType(reconstruct(e,callb,stack), field), pos:expr.pos };
 			case EParenthesis(e): 
-				{ expr:EParenthesis(reconstruct(e,callb)), pos:expr.pos };
+				{ expr:EParenthesis(reconstruct(e,callb,stack)), pos:expr.pos };
 			case EObjectDecl(fields):
 				var newfields = [];
-				for (f in fields) newfields.push({ field:f.field, expr:reconstruct(f.expr,callb) });
+				for (f in fields) newfields.push({ field:f.field, expr:reconstruct(f.expr,callb,stack) });
 				{ expr:EObjectDecl(newfields), pos:expr.pos };
 			case EArrayDecl(values):
 				var newvalues = [];
-				for (v in values) newvalues.push(reconstruct(v,callb));
+				for (v in values) newvalues.push(reconstruct(v,callb,stack));
 				{ expr:EArrayDecl(newvalues), pos:expr.pos };
 			case ECall(e, params):
 				var newparams = [];
-				for (p in params) newparams.push(reconstruct(p,callb));
-				{ expr:ECall(reconstruct(e,callb),newparams), pos:expr.pos };
+				for (p in params) newparams.push(reconstruct(p,callb,stack));
+				{ expr:ECall(reconstruct(e,callb,stack),newparams), pos:expr.pos };
 			case ENew(t, params):
 				var newparams = [];
-				for (p in params) newparams.push(reconstruct(p,callb));
+				for (p in params) newparams.push(reconstruct(p,callb,stack));
 				var newt = {
 					pack: t.pack.copy(),
 					name: t.name,
@@ -179,66 +182,65 @@ class Helper {
 				}
 				{ expr:ENew(newt,newparams), pos:expr.pos };
 			case EUnop(op, postFix, e): 
-				{ expr:EUnop(op, postFix, reconstruct(e,callb)), pos:expr.pos };
+				{ expr:EUnop(op, postFix, reconstruct(e,callb,stack)), pos:expr.pos };
 			case EVars(vars): 
 				var newvars = [];
-				for (v in vars) newvars.push( { name:v.name, type:v.type, expr:reconstruct(v.expr,callb) } );
+				for (v in vars) newvars.push( { name:v.name, type:v.type, expr:reconstruct(v.expr,callb,stack) } );
 				{ expr:EVars(newvars), pos:expr.pos };
 			case EFunction(n, f):
 				var newf = {
 					args: [],
 					ret: f.ret,
-					expr: reconstruct(f.expr,callb),
+					expr: reconstruct(f.expr,callb,stack),
 					params: []
 				}
-				for (a in f.args) newf.args.push( { name:a.name, opt:a.opt, type:a.type, value:reconstruct(a.value,callb) } );
+				for (a in f.args) newf.args.push( { name:a.name, opt:a.opt, type:a.type, value:reconstruct(a.value,callb,stack) } );
 				for (p in f.params) newf.params.push( { name:p.name, constraints:p.constraints.copy() } );
 				{ expr:EFunction(n, newf), pos:expr.pos };
 			case EBlock(exprs):
 				var newexprs = [];
-				for (e in newexprs) newexprs.push(reconstruct(e,callb));
+				for (e in exprs) newexprs.push(reconstruct(e,callb,stack));
 				{ expr:EBlock(newexprs), pos:expr.pos };
 			case EFor(v, it, expr):
-				{ expr:EFor(v, reconstruct(it,callb), reconstruct(expr,callb)), pos:expr.pos };
+				{ expr:EFor(v, reconstruct(it,callb,stack), reconstruct(expr,callb,stack)), pos:expr.pos };
 			case EIf(econd, eif, eelse):
-				{ expr:EIf(reconstruct(econd,callb), reconstruct(eif,callb), reconstruct(eelse,callb)), pos:expr.pos };
+				{ expr:EIf(reconstruct(econd,callb,stack), reconstruct(eif,callb,stack), reconstruct(eelse,callb,stack)), pos:expr.pos };
 			case EWhile(econd, e, normalWhile):
-				{ expr:EWhile(reconstruct(econd,callb), reconstruct(e,callb), normalWhile), pos:expr.pos };
+				{ expr:EWhile(reconstruct(econd,callb,stack), reconstruct(e,callb,stack), normalWhile), pos:expr.pos };
 			case ESwitch(e, cases, edef):
 				var newcases = [];
 				for (c in cases) {
 					var newvalues = [];
-					for (v in c.values) newvalues.push(reconstruct(v,callb));
-					newcases.push( { values:newvalues, expr:reconstruct(c.expr,callb) } );
+					for (v in c.values) newvalues.push(reconstruct(v,callb,stack));
+					newcases.push( { values:newvalues, expr:reconstruct(c.expr,callb,stack) } );
 				}
-				{ expr:ESwitch(reconstruct(e,callb), newcases, reconstruct(edef,callb)), pos:expr.pos };
+				{ expr:ESwitch(reconstruct(e,callb,stack), newcases, reconstruct(edef,callb,stack)), pos:expr.pos };
 			case ETry(e, catches):
 				var newcatches = [];
-				for (c in catches) newcatches.push( { name:c.name, type:c.type, expr:reconstruct(c.expr,callb) } );
-				{ expr:ETry(reconstruct(e,callb), newcatches), pos:expr.pos };
+				for (c in catches) newcatches.push( { name:c.name, type:c.type, expr:reconstruct(c.expr,callb,stack) } );
+				{ expr:ETry(reconstruct(e,callb,stack), newcatches), pos:expr.pos };
 			case EReturn(e):
-				{ expr:EReturn(reconstruct(e,callb)), pos:expr.pos };
+				{ expr:EReturn(reconstruct(e,callb,stack)), pos:expr.pos };
 			case EBreak: 
 				expr;
 			case EContinue: 
 				expr;
 			case EUntyped(e): 
-				{ expr:EUntyped(reconstruct(e,callb)), pos:expr.pos };
+				{ expr:EUntyped(reconstruct(e,callb,stack)), pos:expr.pos };
 			case EThrow(e):
-				{ expr:EThrow(reconstruct(e,callb)), pos:expr.pos };
+				{ expr:EThrow(reconstruct(e,callb,stack)), pos:expr.pos };
 			case ECast(e, t):
-				{ expr:ECast(reconstruct(e,callb), t), pos:expr.pos };
+				{ expr:ECast(reconstruct(e,callb,stack), t), pos:expr.pos };
 			case EDisplay(e, isCall):
-				{ expr:EDisplay(reconstruct(e,callb), isCall), pos:expr.pos };
+				{ expr:EDisplay(reconstruct(e,callb,stack), isCall), pos:expr.pos };
 			case EDisplayNew(t):
 				expr;
 			case ETernary(econd, eif, eelse):
-				{ expr:ETernary(reconstruct(econd,callb), reconstruct(eif,callb), reconstruct(eelse,callb)), pos:expr.pos };
-		});
-	}
-	
-	@:macro static public function clone_(expr:Null<Expr>, ?deep:Bool = true):Null<Expr> {
-		return clone(expr, deep);
+				{ expr:ETernary(reconstruct(econd,callb,stack), reconstruct(eif,callb,stack), reconstruct(eelse,callb,stack)), pos:expr.pos };
+		},stack);
+		
+		stack.pop();
+		return r;
 	}
 	
 	/**
@@ -249,7 +251,7 @@ class Helper {
 	 */
 	static public function clone(expr:Null<Expr>, ?deep:Bool = true):Null<Expr> {
 		if (deep)
-			return reconstruct(expr, function(e) return clone(e, false));
+			return reconstruct(expr, function(e,s) return clone(e, false));
 		else
 			return expr == null? null : switch (expr.expr) {
 				case EConst(c): 
