@@ -67,6 +67,18 @@ class Inline
 				case CInt(_), CFloat(_), CString(_), CIdent(_), CType(_): true;
 				default: false;
 			}
+			case EParenthesis(e): isExprSimple(e);
+			default: false;
+		}
+	}
+	
+	static public function isIdentNamed(expr:Null<Expr>, name:String):Bool {
+		return expr == null ? false : switch (expr.expr) {
+			case EConst(c): switch (c) {
+				case CIdent(s): s == name;
+				default: false;
+			}
+			case EParenthesis(e): isIdentNamed(e, name);
 			default: false;
 		}
 	}
@@ -77,29 +89,13 @@ class Inline
 				case EBinop(op, e1, e2):
 					switch(op) {
 						case OpAssign, OpAssignOp(_):
-							switch(e1.expr) {
-								case EConst(c): 
-									switch(c) {
-										case CIdent(s):
-											if (s == identName) return TCExit;
-										default:
-									}
-								default:
-							}
+							if (isIdentNamed(e1, identName)) return TCExit;
 						default:
 					}
 				case EUnop(op, postFix, e):
 					switch(op) {
 						case OpIncrement, OpDecrement:
-							switch(e.expr) {
-								case EConst(c): 
-									switch(c) {
-										case CIdent(s):
-											if (s == identName) return TCExit;
-										default:
-									}
-								default:
-							}
+							if (isIdentNamed(e, identName)) return TCExit;
 						default:
 					}
 				case EFunction(_, _): 
@@ -180,14 +176,7 @@ class Inline
 	 * Replace all occurrence of a specific identifier with an Expr.
 	 */
 	static public function replaceIdent(expr:Null<Expr>, find:String, replace:Null<Expr>):Null<Expr> {
-		return Helper.reconstruct(expr, function(e,s) return e == null? null : switch (e.expr) {
-			case EConst(c): 
-				switch(c) {
-					case CIdent(s): s == find ? replace : e;
-					default: e;
-				}
-			default: e;
-		});
+		return Helper.reconstruct(expr, function(e,s) return isIdentNamed(e, find) ? replace : e);
 	}
 	
 	/*
@@ -196,15 +185,7 @@ class Inline
 	static public function countIdent(expr:Null<Expr>, name:String):Int {
 		var num = 0;
 		Helper.traverse(expr, function(e,s) {
-			if (e != null) switch(e.expr) {
-				case EConst(c): 
-					switch(c) {
-						case CIdent(s):
-							if (s == name) ++num;
-						default:
-					}
-				default:
-			}
+			if (isIdentNamed(e, name)) ++num;
 			return TCContinue;
 		});
 		return num;
