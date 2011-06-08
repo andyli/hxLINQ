@@ -38,7 +38,7 @@ using Lambda;
 							{ 
 								sub: null, 
 								name: "LINQ", 
-								pack: [], 
+								pack: ["hxLINQ"], 
 								params: arrayType == null ? [] : [ TPType(dataType.toComplexType()),TPType(arrayType) ] 
 							},
 							[data]
@@ -62,7 +62,7 @@ using Lambda;
 				{ 
 					sub: null, 
 					name: "LINQ", 
-					pack: [], 
+					pack: ["hxLINQ"], 
 					params: itrblItemType == null ? [] : [ TPType(dataType.toComplexType()), TPType(itrblItemType) ]
 				},
 				[data]
@@ -81,7 +81,7 @@ using Lambda;
 				{ 
 					sub: null, 
 					name: "LINQ", 
-					pack: [], 
+					pack: ["hxLINQ"], 
 					params: itrItemType == null ? [] : [ TPType(dataType.toComplexType()), TPType(itrItemType) ]
 				},
 				[data]

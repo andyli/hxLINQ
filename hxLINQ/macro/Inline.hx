@@ -102,7 +102,7 @@ class Inline
 				for (c in cases) if (!isFinalReturn(c.expr)) return false;
 				return true;
 			case ETry(e, catches):
-				return false; //TODO
+				return isFinalReturn(e) && catches.foreach(function (c) return isFinalReturn(c.expr));
 			case EReturn(e):
 				return countEReturn(e) == 0;
 			case EBreak: 
