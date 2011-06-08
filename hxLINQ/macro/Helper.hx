@@ -32,36 +32,7 @@ class Helper {
 						case TCNoChildren: throw TCNoChildren;
 						case TCExit: false;
 					} : true) 
-				&& (expr == null ? true : switch (expr.expr) {
-						case EConst(c): true;
-						case EArray(e1, e2): traverse(e1,callb,preorder,stack) && traverse(e2,callb,preorder,stack);
-						case EBinop(op, e1, e2): traverse(e1,callb,preorder,stack) && traverse(e2,callb,preorder,stack);
-						case EField(e, field): traverse(e,callb,preorder,stack);
-						case EType(e, field): traverse(e,callb,preorder,stack);
-						case EParenthesis(e): traverse(e,callb,preorder,stack);
-						case EObjectDecl(fields): fields.foreach(function(f) return traverse(f.expr,callb,preorder,stack));
-						case EArrayDecl(values): values.foreach(function(v) return traverse(v,callb,preorder,stack));
-						case ECall(e, params): traverse(e,callb,preorder,stack) && params.foreach(function(v) return traverse(v,callb,preorder,stack));
-						case ENew(t, params): params.foreach(function(v) return traverse(v,callb,preorder,stack));
-						case EUnop(p, postFix, e): traverse(e,callb,preorder,stack);
-						case EVars(vars): vars.foreach(function(v) return traverse(v.expr,callb,preorder,stack));
-						case EFunction(n, f): traverse(f.expr, callb, preorder) && f.args.foreach(function(a) return traverse(a.value, callb, preorder));
-						case EBlock(exprs): exprs.foreach(function(v) return traverse(v,callb,preorder,stack));
-						case EFor(v, it, expr): traverse(it,callb,preorder,stack) && traverse(expr,callb,preorder,stack);
-						case EIf(econd, eif, eelse): traverse(econd,callb,preorder,stack) && traverse(eif,callb,preorder,stack) && traverse(eelse,callb,preorder,stack);
-						case EWhile(econd, e, normalWhile): traverse(econd,callb,preorder,stack) && traverse(e,callb,preorder,stack);
-						case ESwitch(e, cases, edef): traverse(e,callb,preorder,stack) && cases.foreach(function(c) return c.values.foreach(function(v) return traverse(v,callb,preorder,stack)) && traverse(c.expr,callb,preorder,stack)) && traverse(edef,callb,preorder,stack);
-						case ETry(e, catches): traverse(e,callb,preorder,stack) && catches.foreach(function(c) return traverse(c.expr,callb,preorder,stack));
-						case EReturn(e): traverse(e,callb,preorder,stack);
-						case EBreak: true;
-						case EContinue: true;
-						case EUntyped(e): traverse(e,callb,preorder,stack);
-						case EThrow(e): traverse(e,callb,preorder,stack);
-						case ECast(e,t): traverse(e,callb,preorder,stack);
-						case EDisplay(e, isCall): traverse(e,callb,preorder,stack);
-						case EDisplayNew(t): true;
-						case ETernary(econd, eif, eelse): traverse(econd,callb,preorder,stack) && traverse(eif,callb,preorder,stack) && traverse(eelse,callb,preorder,stack);
-					}) 
+				&& getChildren(expr).foreach(function(e) return traverse(e,callb,preorder,stack))
 				&& (preorder ? true : switch (callb(expr,stack)) {
 						case TCContinue: true;
 						case TCExit: false;
@@ -76,6 +47,39 @@ class Helper {
 		
 		stack.pop();
 		return ret;
+	}
+	
+	static public function getChildren(expr:Null<Expr>):Array<Null<Expr>> {
+		return expr == null ? [] : switch (expr.expr) {
+			case EConst(c): [];
+			case EArray(e1, e2): [e1, e2];
+			case EBinop(op, e1, e2): [e1, e2];
+			case EField(e, field): [e];
+			case EType(e, field): [e];
+			case EParenthesis(e): [e];
+			case EObjectDecl(fields): fields.map(function(f) return f.expr).array();
+			case EArrayDecl(values): values.copy();
+			case ECall(e, params): [e].concat(params);
+			case ENew(t, params): params.copy();
+			case EUnop(p, postFix, e): [e];
+			case EVars(vars): vars.map(function(v) return v.expr).array();
+			case EFunction(n, f): [f.expr].concat(f.args.map(function(a) return a.value).array());
+			case EBlock(exprs): exprs.copy();
+			case EFor(v, it, expr): [it, expr];
+			case EIf(econd, eif, eelse): [econd, eif, eelse];
+			case EWhile(econd, e, normalWhile): [econd, e];
+			case ESwitch(e, cases, edef): [e].concat(cases.fold(function(c,a) return c.values.concat([c.expr]).concat(a),[])).concat([edef]);
+			case ETry(e, catches): [e].concat(catches.map(function(c) return c.expr).array());
+			case EReturn(e): [e];
+			case EBreak: [];
+			case EContinue: [];
+			case EUntyped(e): [e];
+			case EThrow(e): [e];
+			case ECast(e,t): [e];
+			case EDisplay(e, isCall): [e];
+			case EDisplayNew(t): [];
+			case ETernary(econd, eif, eelse): [econd, eif, eelse];
+		}
 	}
 	
 	/*
