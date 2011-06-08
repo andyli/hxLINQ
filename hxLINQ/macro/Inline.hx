@@ -30,14 +30,17 @@ class Inline
 					return removeEReturn(f.expr);
 				} else {
 					var hasVarBeUsedTwice = false;
+					var hasVarBeModified = false;
 					var vars = [];
 					for (i in 0...f.args.length) {
 						var a = f.args[i];
 						vars.push( { name:a.name, type:a.type, expr: i < args.length ? args[i] : a.value } );
 						
 						if (!hasVarBeUsedTwice && countIdent(f.expr, a.name) > 1) hasVarBeUsedTwice = true;
+						if (!hasVarBeModified && isVarBeModified(f.expr, a.name)) hasVarBeModified = true;
 					}
-					if (hasVarBeUsedTwice){
+					
+					if (hasVarBeUsedTwice || hasVarBeModified){
 						return {
 							expr:EBlock([
 								{expr:EVars(vars), pos:e.pos },
@@ -56,6 +59,45 @@ class Inline
 				}
 			default: return throw "Accept EFunction only.";
 		}
+	}
+	
+	static public function isVarBeModified(expr:Null<Expr>, identName:String):Bool {
+		return !Helper.traverse(expr, function(e,s) {
+			if (e != null) switch(e.expr) {
+				case EBinop(op, e1, e2):
+					switch(op) {
+						case OpAssign, OpAssignOp(_):
+							switch(e1.expr) {
+								case EConst(c): 
+									switch(c) {
+										case CIdent(s):
+											if (s == identName) return TCExit;
+										default:
+									}
+								default:
+							}
+						default:
+					}
+				case EUnop(op, postFix, e):
+					switch(op) {
+						case OpIncrement, OpDecrement:
+							switch(e.expr) {
+								case EConst(c): 
+									switch(c) {
+										case CIdent(s):
+											if (s == identName) return TCExit;
+										default:
+									}
+								default:
+							}
+						default:
+					}
+				case EFunction(_, _): 
+					return TCNoChildren;
+				default:
+			}
+			return TCContinue;
+		});
 	}
 	
 	static public function isFinalReturn(expr:Null<Expr>):Bool {

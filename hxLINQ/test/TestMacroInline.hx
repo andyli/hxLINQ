@@ -40,6 +40,10 @@ class TestMacroInline extends TestCase
 		assertEquals(123, Inline.eFunctionToEBlock(function(_ = 456) return _, [123]));
 	}
 	
+	public function testAssigningToArg():Void {
+		assertEquals(123, Inline.eFunctionToEBlock(function(_) return _ = 123));
+	}
+	
 	public function testComplexReturn():Void {
 		var a = 123, b = 456;
 		assertEquals(123, Inline.eFunctionToEBlock(function() return true ? a : b));
