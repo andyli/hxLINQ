@@ -121,13 +121,6 @@ class Helper {
 		}
 	}
 	
-	static public function getECallParams(expr:Expr):Array<Expr> {
-		return switch (expr.expr) {
-			case ECall(e, params): params;
-			default: null;
-		}
-	}
-	
 	/*
 	 * Recursively search for EDisplay/EDisplayNew.
 	 */

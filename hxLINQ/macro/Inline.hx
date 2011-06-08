@@ -124,6 +124,9 @@ class Inline
 		}
 	}
 	
+	/*
+	 * Replace all occurrence of a specific identifier with an Expr.
+	 */
 	static public function replaceIdent(expr:Null<Expr>, find:String, replace:Null<Expr>):Null<Expr> {
 		return Helper.reconstruct(expr, function(e,s) return e == null? null : switch (e.expr) {
 			case EConst(c): 
@@ -135,6 +138,9 @@ class Inline
 		});
 	}
 	
+	/*
+	 * Count the number of given identifier inside an Expr.
+	 */
 	static public function countIdent(expr:Null<Expr>, name:String):Int {
 		var num = 0;
 		Helper.traverse(expr, function(e,s) {
@@ -168,10 +174,13 @@ class Inline
 		return num;
 	}
 	
+	/*
+	 * Check if the input Expr is a function with return type Void.
+	 */
 	static public function isReturnVoid(expr:Null<Expr>):Bool {
 		#if macro
 		try {
-			switch (Context.typeof(expr)) {
+			switch (Context.follow(Context.typeof(expr))) {
 				case TFun(args, ret):
 					switch (ret) {
 						case TEnum(t, params): if (t.get().name == "Void") return true;
