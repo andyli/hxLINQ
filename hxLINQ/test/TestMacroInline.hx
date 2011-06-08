@@ -25,6 +25,11 @@ class TestMacroInline extends TestCase
 		assertEquals(123, a);
 		
 		assertEquals(null, Inline.eFunctionToEBlock(function() return));
+		
+		
+		assertEquals(456, Inline.eFunctionToEBlock(function() return switch(a) {
+			case 123: 456;
+		}));
 	}
 	
 	public function testWithArgs():Void {

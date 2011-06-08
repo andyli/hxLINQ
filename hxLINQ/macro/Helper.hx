@@ -50,7 +50,7 @@ class Helper {
 						case EFor(v, it, expr): traverse(it,callb,preorder,stack) && traverse(expr,callb,preorder,stack);
 						case EIf(econd, eif, eelse): traverse(econd,callb,preorder,stack) && traverse(eif,callb,preorder,stack) && traverse(eelse,callb,preorder,stack);
 						case EWhile(econd, e, normalWhile): traverse(econd,callb,preorder,stack) && traverse(e,callb,preorder,stack);
-						case ESwitch(e, cases, edef): traverse(e,callb,preorder,stack) && cases.foreach(function(c) return c.values.foreach(function(v) return traverse(v,callb,preorder,stack)) && traverse(expr,callb,preorder,stack)) && traverse(edef,callb,preorder,stack);
+						case ESwitch(e, cases, edef): traverse(e,callb,preorder,stack) && cases.foreach(function(c) return c.values.foreach(function(v) return traverse(v,callb,preorder,stack)) && traverse(c.expr,callb,preorder,stack)) && traverse(edef,callb,preorder,stack);
 						case ETry(e, catches): traverse(e,callb,preorder,stack) && catches.foreach(function(c) return traverse(c.expr,callb,preorder,stack));
 						case EReturn(e): traverse(e,callb,preorder,stack);
 						case EBreak: true;
