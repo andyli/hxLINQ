@@ -139,7 +139,9 @@ class Inline
 			case EBlock(exprs):
 				for (i in 0...exprs.length - 1) if (countEReturn(exprs[i]) > 0) return false;
 				return isFinalReturn(exprs[exprs.length-1]);
-			case EFor(v, it, expr):
+			case EFor(it, expr):
+				return false;
+			case EIn(e1, e2):
 				return false;
 			case EIf(econd, eif, eelse):
 				return isFinalReturn(eif) && isFinalReturn(eelse);
@@ -169,6 +171,8 @@ class Inline
 				return false;
 			case ETernary(econd, eif, eelse):
 				return isFinalReturn(eif) && isFinalReturn(eelse);
+			case ECheckType(e, t):
+				return isFinalReturn(e);
 		}
 	}
 	

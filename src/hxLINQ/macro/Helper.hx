@@ -3,8 +3,9 @@ package hxLINQ.macro;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.Type;
+#if macro
 using tink.macro.tools.TypeTools;
-
+#end
 using Lambda;
 
 enum TraverseControl {
