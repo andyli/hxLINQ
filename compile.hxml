@@ -1,5 +1,6 @@
 -main Test
 -cpp bin
 -cp src
+-lib tink_macros
 
 -cmd ./bin/Test

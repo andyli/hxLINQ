@@ -3,6 +3,7 @@ package hxLINQ.macro;
 import haxe.macro.Expr;
 import haxe.macro.Context;
 import haxe.macro.Type;
+using tink.macro.tools.TypeTools;
 
 using Lambda;
 
@@ -71,7 +72,8 @@ class Helper {
 			case EVars(vars): vars.map(function(v) return v.expr).array();
 			case EFunction(n, f): [f.expr].concat(f.args.map(function(a) return a.value).array());
 			case EBlock(exprs): exprs.copy();
-			case EFor(v, it, expr): [it, expr];
+			case EFor(it, expr): [it, expr];
+			case EIn(e1, e2): [e1, e2];
 			case EIf(econd, eif, eelse): [econd, eif, eelse];
 			case EWhile(econd, e, normalWhile): [econd, e];
 			case ESwitch(e, cases, edef): [e].concat(cases.fold(function(c,a) return c.values.concat([c.expr]).concat(a),[])).concat([edef]);
@@ -85,6 +87,7 @@ class Helper {
 			case EDisplay(e, isCall): [e];
 			case EDisplayNew(t): [];
 			case ETernary(econd, eif, eelse): [econd, eif, eelse];
+			case ECheckType(e, t): [e];
 		}
 	}
 	
@@ -119,17 +122,6 @@ class Helper {
 				}
 			default: "";
 		}
-	}
-	
-	/*
-	 * Recursively search for EDisplay/EDisplayNew.
-	 */
-	static public function hasEDisplay(expr:Expr):Bool {
-		return !traverse(expr, 
-			function(e,s) return expr == null ? TCContinue : switch(e.expr) {
-				case EDisplay(_,_), EDisplayNew(_): TCExit;
-				default: TCContinue;
-			});
 	}
 	
 	/**
@@ -198,8 +190,10 @@ class Helper {
 				var newexprs = [];
 				for (e in exprs) newexprs.push(reconstruct(e,callb,stack));
 				{ expr:EBlock(newexprs), pos:expr.pos };
-			case EFor(v, it, expr):
-				{ expr:EFor(v, reconstruct(it,callb,stack), reconstruct(expr,callb,stack)), pos:expr.pos };
+			case EFor(it, expr):
+				{ expr:EFor(reconstruct(it,callb,stack), reconstruct(expr,callb,stack)), pos:expr.pos };
+			case EIn(e1, e2):
+				{ expr:EIn(reconstruct(e1,callb,stack), reconstruct(e2,callb,stack)), pos:expr.pos };
 			case EIf(econd, eif, eelse):
 				{ expr:EIf(reconstruct(econd,callb,stack), reconstruct(eif,callb,stack), reconstruct(eelse,callb,stack)), pos:expr.pos };
 			case EWhile(econd, e, normalWhile):
@@ -234,6 +228,8 @@ class Helper {
 				expr;
 			case ETernary(econd, eif, eelse):
 				{ expr:ETernary(reconstruct(econd,callb,stack), reconstruct(eif,callb,stack), reconstruct(eelse,callb,stack)), pos:expr.pos };
+			case ECheckType(e, t):
+				{ expr:ECheckType(reconstruct(e,callb,stack), t), pos:expr.pos };
 		},stack);
 		
 		stack.pop();
@@ -297,8 +293,10 @@ class Helper {
 					{ expr:EFunction(n, newf), pos:expr.pos };
 				case EBlock(exprs):
 					{ expr:EBlock(exprs.copy()), pos:expr.pos };
-				case EFor(v, it, expr):
-					{ expr:EFor(v, it, expr), pos:expr.pos };
+				case EFor(it, expr):
+					{ expr:EFor(it, expr), pos:expr.pos };
+				case EIn(e1, e2):
+					{ expr:EIn(e1, e2), pos:expr.pos };
 				case EIf(econd, eif, eelse):
 					{ expr:EIf(econd, eif, eelse), pos:expr.pos };
 				case EWhile(econd, e, normalWhile):
@@ -329,6 +327,8 @@ class Helper {
 					{ expr:EDisplayNew(t), pos:expr.pos };
 				case ETernary(econd, eif, eelse):
 					{ expr:ETernary(econd, eif, eelse), pos:expr.pos };
+				case ECheckType(e, t):
+					{ expr:ECheckType(e, t), pos:expr.pos };
 			}
 	}
 	
@@ -358,7 +358,7 @@ class Helper {
 							{
 								expr: EBlock([ 
 									{ 
-										expr:EVars( [ { name: "$testType", type: toComplexType(dataType), expr: null } ] ), 
+										expr:EVars( [ { name: "$testType", type: dataType.toComplex(), expr: null } ] ), 
 										pos:pos 
 									}, 
 									{ 
@@ -395,7 +395,7 @@ class Helper {
 											{ 
 												expr: EBlock([ 
 													{ 
-														expr:EVars( [ { name: "$testType", type: toComplexType(dataType), expr: null } ] ), 
+														expr:EVars( [ { name: "$testType", type: dataType.toComplex(), expr: null } ] ), 
 														pos:pos 
 													}, 
 													{ 
@@ -442,133 +442,6 @@ class Helper {
 	public static function getFullyQualifiedName(type:BaseType):String {
 		return type.pack.join(".") + (type.pack.length > 0 ? "." : "") + type.name;
     }
-	
-	/*
-	 * Turns a Type into a ComplexType.
-	 * TODO: TAnonymous is not supported yet.
-	 */
-	static public function toComplexType(t:Null<Type>):Null<ComplexType> {
-		var ct = t == null ? null : switch(t) {
-			case TMono: 
-				null;
-			case TEnum(t, params):
-				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.exists(function(p) return toComplexType(p) == null) ? [] : params.map(function(p) return TPType(toComplexType(p))).array()} );
-			case TInst(t, params):
-				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.exists(function(p) return toComplexType(p) == null) ? [] : params.map(function(p) return TPType(toComplexType(p))).array()} );
-			case TType(t, params): 
-				TPath( { sub: null, name: t.get().name, pack: t.get().pack, params: params.exists(function(p) return toComplexType(p) == null) ? [] : params.map(function(p) return TPType(toComplexType(p))).array()} );
-			case TFun(args, ret): 
-				TFunction( args.exists(function(a) return toComplexType(a.t) == null) ? [] : args.map(function(a) return toComplexType(a.t)).array(), toComplexType(ret) );
-			case TAnonymous(a): //TODO
-				/*
-					var a:{
-						private var a:Int;
-						public var b(default,null):Int;
-						var c:Int;
-						public function d(dd:Int):String;
-					};
-					
-					//TAnonymous
-					{ 
-						fields: 
-						[ 
-							{ 
-								type: TInst(Int, []), 
-								name: a, 
-								params: [], 
-								expr: null, 
-								kind: FVar(AccNormal, AccNormal), 
-								pos: pos, 
-								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
-								isPublic: false 
-							}, 
-							{ 
-								type: TInst(Int, []), 
-								name: b, 
-								params: [], 
-								expr: null, 
-								kind: FVar(AccNormal, AccNo), 
-								pos: pos, 
-								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
-								isPublic: true }, 
-							{ 
-								type: TInst(Int, []), 
-								name: c, 
-								params: [], 
-								expr: null, 
-								kind: FVar(AccNormal, AccNormal), 
-								pos: pos, 
-								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
-								isPublic: true 
-							},
-							{ 
-								type: TFun([ { opt: false, name: dd, t: TInst(Int, []) } ], TInst(String, [])), 
-								name: d, 
-								params: [], 
-								expr: null, 
-								kind: FMethod(MethNormal), 
-								pos: pos, 
-								meta: { remove: #function:1, add: #function:3, has: #function:1, get: #function:0 }, 
-								isPublic: true 
-							}
-						]
-					}
-				*
-				TAnonymous( a.get().fields.map(
-					function(cf:ClassField):haxe.macro.Expr.Field {
-						return { 
-							name: cf.name, 
-							doc: null,
-							access: [],
-							kind: switch(cf.type) {
-								case TFun(args, ret): 
-									FFun( {
-										args: args.map(function(a) return 
-											{ 
-												name: a.name, 
-												opt: a.opt, 
-												type: toComplexType(a.t),
-												value: null
-											} 
-										).array(),
-										ret: toComplexType(ret),
-										expr: null,
-										params: []
-									} );
-								default:
-									FVar(toComplexType(cf.type), null);
-							}, 
-							pos: cf.pos,
-							meta: []
-						}
-					}).array()
-				); */ null;
-			case TDynamic(t): 
-				TPath( { sub: null, name: "Dynamic", pack: [], params: t == null ? [] : [TPType(toComplexType(t))] } );
-		}
-		
-		#if macro
-		try {
-			toType(ct); //throw error if the type is not found
-			return ct;
-		} catch (e:Dynamic) {
-			switch (ct) {
-				case TPath(p): 
-					p.pack = []; //for cases of t is a type param. eg. static function myMethod<T>() {  }
-					try {
-						toType(ct);
-						return ct;
-					} catch (e:Dynamic) {
-						return null;
-					}
-				default: 
-					return null;
-			}
-		}
-		#else
-		return ct;
-		#end
-	}
 	
 	/*
 	 * Return a String dump of the input Expr.

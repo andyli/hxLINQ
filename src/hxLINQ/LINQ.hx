@@ -16,6 +16,8 @@ import haxe.macro.Context;
 import hxLINQ.macro.Helper;
 using hxLINQ.macro.Helper;
 
+using tink.macro.tools.TypeTools;
+
 using Std;
 using Lambda;
 #end
@@ -32,14 +34,14 @@ using Lambda;
 		switch(Context.follow(dataType)) {
 			case TInst(t, params):
 				if (t.get().name == "Array" && t.get().pack.length == 0) {
-					var arrayType = params[0].toComplexType();
+					var arrayType = params[0].toComplex();
 					return { 
 						expr: ENew( 
 							{ 
 								sub: null, 
 								name: "LINQ", 
 								pack: ["hxLINQ"], 
-								params: arrayType == null ? [] : [ TPType(dataType.toComplexType()),TPType(arrayType) ] 
+								params: arrayType == null ? [] : [ TPType(dataType.toComplex()),TPType(arrayType) ] 
 							},
 							[data]
 						), 
@@ -56,14 +58,14 @@ using Lambda;
 @:macro class LINQtoIterable {
 	static public function linq<T>(?data:ExprRequire<Iterable<T>>):ExprRequire<LINQ<Iterable<T>,T>> {
 		var dataType = Context.typeof(data);
-		var itrblItemType = dataType.getItrblItemType().toComplexType();
+		var itrblItemType = dataType.getItrblItemType().toComplex();
 		return { 
 			expr: ENew( 
 				{ 
 					sub: null, 
 					name: "LINQ", 
 					pack: ["hxLINQ"], 
-					params: itrblItemType == null ? [] : [ TPType(dataType.toComplexType()), TPType(itrblItemType) ]
+					params: itrblItemType == null ? [] : [ TPType(dataType.toComplex()), TPType(itrblItemType) ]
 				},
 				[data]
 			), 
@@ -75,14 +77,14 @@ using Lambda;
 @:macro class LINQtoIterator {
 	static public function linq<T>(?data:ExprRequire<Iterator<T>>):ExprRequire<LINQ<Iterator<T>,T>> {
 		var dataType = Context.typeof(data);
-		var itrItemType = dataType.getItrItemType().toComplexType();
+		var itrItemType = dataType.getItrItemType().toComplex();
 		return { 
 			expr: ENew( 
 				{ 
 					sub: null, 
 					name: "LINQ", 
 					pack: ["hxLINQ"], 
-					params: itrItemType == null ? [] : [ TPType(dataType.toComplexType()), TPType(itrItemType) ]
+					params: itrItemType == null ? [] : [ TPType(dataType.toComplex()), TPType(itrItemType) ]
 				},
 				[data]
 			), 
@@ -93,7 +95,7 @@ using Lambda;
 
 @:macro class LINQmethod {
 	static public function where<D,I>(linq:ExprRequire<LINQ<D,I>>, clause:ExprRequire < I->Int->Bool > ):ExprRequire<LINQ<D,I>> {
-		if (clause.hasEDisplay()) {
+		if (Context.defined("display")) {
 			switch(clause.expr) { 
 				case EFunction(name, func):
 					/*
@@ -112,7 +114,7 @@ using Lambda;
 					
 					if (func.args.length > 0)
 						if (func.args[0].type == null)
-							func.args[0].type = itemType.toComplexType();
+							func.args[0].type = itemType.toComplex();
 						else 
 							if (Context.follow(func.args[0].type.toType()).string() != Context.follow(itemType).string())
 								throw func.args[0].name + " of clause should be " + itemType.string() + ".";
@@ -219,7 +221,7 @@ using Lambda;
 				{ expr: EVars(vars), pos:pos },
 				//for (__itm in @dataExpr)
 				{
-					expr: EFor("__itm", dataExpr, {
+					expr: EFor({ expr:EIn({expr:EConst(CIdent("__itm")), pos:pos}, dataExpr), pos:pos }, {
 						expr: EBlock(loopBlockExprs),
 						pos:pos
 					}),
