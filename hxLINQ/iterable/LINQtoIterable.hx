@@ -233,6 +233,23 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return new LINQ(result);
 	}
+	
+	public function except<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
+		if (clause == null){
+			clause = function (item:T, index:Int, item2:Dynamic, index2:Int) { return item == item2; };
+		}
+
+		var result = new Array<T>();
+		var remove = new LINQ(items);
+		var ia = 0;
+		var ib = 0;
+		for (a in this.items) {
+			if (!remove.any(function(b,ib) return clause(a,ia,b,ib)))
+				result.push(a);
+			++ia;
+		}
+		return new LINQ(result);
+	}
 
 	public function defaultIfEmpty(?defaultValue:T):LINQ<T,C> {
 		var r = new LINQ(items);

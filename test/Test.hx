@@ -204,12 +204,25 @@ class Test extends haxe.unit.TestCase{
         this.assertEquals(2,sample.count());
 
         sample = new LINQ(nameList1)
-        				.intersect(new LINQ(nameList2));
+        	.intersect(new LINQ(nameList2));
         this.assertEquals(2,sample.count());
 
         var sample2 = new LINQ(people)
-        				.intersect(nameList2, function(item:Person, index:Int, item2:String, index2:Int) return item.firstName == item2);
-        	this.assertEquals(4,sample2.count());
+        	.intersect(nameList2, function(item:Person, index:Int, item2:String, index2:Int) return item.firstName == item2);
+        this.assertEquals(4,sample2.count());
+	}
+	
+	public function testExcept():Void {
+		var e = people[1];
+		
+		var r = new LINQ(people)
+			.except([e]);
+		this.assertEquals(people.length - 1, r.count());
+		this.assertFalse(r.any(function(p,i) return p == e));
+		
+		var r = new LINQ(people)
+			.except([]);
+		this.assertEquals(people.length, r.count());
 	}
 
 	public function testDefaultIfEmpty():Void {
