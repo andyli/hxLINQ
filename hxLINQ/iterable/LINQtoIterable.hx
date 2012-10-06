@@ -150,7 +150,9 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(retVal);
 	}
 
-	public function any(clause:T->Int->Bool):Bool {
+	public function any(?clause:T->Int->Bool):Bool {
+		if (clause == null) return items.iterator().hasNext();
+		
 		var i = 0;
 		for (item in items) {
 			if (clause(item,i++)) {
@@ -188,7 +190,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		if (clause != null) {
 			return this.where(clause).last();
 		} else {
-			if (first() != null) {
+			if (any()) {
 				return toArray().pop();
 			} else {
 				return null;
@@ -228,11 +230,11 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(result);
 	}
 
-	public function defaultIfEmpty(defaultValue:Iterable<T>):Iterable<T> {
-		if (first() == null) {
+	public function defaultIfEmpty(defaultValue:C):C {
+		if (!any()) {
 			return defaultValue;
 		} else {
-			return this;
+			return items;
 		}
 	}
 
@@ -243,13 +245,11 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	}
 
 	public function firstOrDefault(defaultValue:T):T {
-		var r = this.first();
-		return r == null ? defaultValue : r;
+		return any() ? first() : defaultValue;
 	}
 
 	public function lastOrDefault(defaultValue:T):T {
-		var r = this.last();
-		return r == null ? defaultValue : r;
+		return any() ? last() : defaultValue;
 	}
 
 	public var items(default,null):C;

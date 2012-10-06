@@ -1,7 +1,5 @@
 import hxLINQ.LINQ;
 
-using Lambda;
-
 typedef Person = { id:Int , firstName:String, lastName:String, bookIds:Array<Int> };
 
 class Test extends haxe.unit.TestCase{
@@ -128,13 +126,20 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testAny():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people).any();
+		this.assertTrue(r);
+		
+		var r = new LINQ([null]).any();
+		this.assertTrue(r);
+		
+		var r = new LINQ([]).any();
+		this.assertFalse(r);
+		
+		var r = new LINQ(people)
 				.any(function(p:Person, i:Int) return p.firstName == "Chris");
 		this.assertTrue(r);
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.any(function(p:Person, i:Int) return p.firstName == "Chris" && i == 4);
 		this.assertFalse(r);
 	}
@@ -210,15 +215,9 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testDefaultIfEmpty():Void {
-		var r;
-
-		r = new LINQ([])
-				.defaultIfEmpty(new LINQ(people));
-		this.assertEquals(10,r.count());
-
-		r = new LINQ([])
+		var r = new LINQ([])
 				.defaultIfEmpty(people);
-		this.assertEquals(10,r.count());
+		this.assertEquals(people,r);
 	}
 
 	public function testElementAtOrDefault():Void {
@@ -258,7 +257,7 @@ class Test extends haxe.unit.TestCase{
 				.thenBy(function(p:Person) return p.lastName.charCodeAt(0))
 				.select(function(p:Person) return p.id);
 		this.assertEquals(10,r.count());
-		this.assertEquals("9,1,8,7,4,3,2,10,6,5",r.array().join(","));
+		this.assertEquals("9,1,8,7,4,3,2,10,6,5",r.toArray().join(","));
 	}
 
 	public function testThenByDescending():Void {
@@ -267,7 +266,7 @@ class Test extends haxe.unit.TestCase{
 				.thenByDescending(function(p:Person) return p.lastName.charCodeAt(0))
 				.select(function(p:Person) return p.id);
 		this.assertEquals(10,r.count());
-		this.assertEquals("9,8,1,7,3,4,6,10,2,5",r.array().join(","));
+		this.assertEquals("9,8,1,7,3,4,6,10,2,5",r.toArray().join(","));
 	}
 
 	static public var people:Array<Person> = [
