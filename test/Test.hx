@@ -121,8 +121,16 @@ class Test extends haxe.unit.TestCase{
 
 	public function testDistinct():Void {
 		var r = new LINQ(people)
-				.distinct(function(p:Person) return p.firstName);
+				.distinct(function(p:Person,p2:Person) return p.firstName == p2.firstName);
 		this.assertEquals(8,r.count());
+		
+		var r = new LINQ(people)
+				.distinct();
+		this.assertEquals(10,r.count());
+		
+		var r = new LINQ([1,1,1])
+				.distinct();
+		this.assertEquals(1,r.count());
 	}
 
 	public function testAny():Void {

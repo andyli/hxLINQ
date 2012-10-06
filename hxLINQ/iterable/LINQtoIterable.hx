@@ -142,13 +142,12 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return this.sum(clause)/this.count();
 	}
 
-	public function distinct<F>(clause:T->F):LINQ<F,Array<F>> {
-		var newItem;
-		var retVal = new Array<F>();
+	public function distinct(?comparer:T->T->Bool):LINQ<T,Array<T>> {
+		if (comparer == null) comparer = function(a,b) return a == b;
+		var retVal = new Array<T>();
 		for (item in items) {
-			newItem = clause(item);
-			if (!new LINQ(retVal).any(function (f:F, i) return f == newItem)) {
-				retVal.push(newItem);
+			if (!new LINQ(retVal).any(function(r,i) return comparer(r,item))) {
+				retVal.push(item);
 			}
 		}
 		return new LINQ(retVal);
