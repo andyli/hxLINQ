@@ -39,11 +39,12 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(newArray);
 	}
 
-	public function select<F>(clause:T->F):LINQ<F,Array<F>> {
+	public function select<F>(clause:T->Int->F):LINQ<F,Array<F>> {
 		var newArray = new Array<F>();
 		
+		var i = 0;
 		for (item in items) {
-			var newItem = clause(item);
+			var newItem = clause(item, i++);
 			if (newItem != null) {
 				newArray.push(newItem);
 			}
@@ -120,10 +121,11 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(result);
 	}
 
-	public function selectMany<F>(clause:T->Array<F>):LINQ<F,Array<F>> {
+	public function selectMany<F>(clause:T->Int->Array<F>):LINQ<F,Array<F>> {
 		var r = new Array<F>();
+		var i = 0;
 		for (item in items){
-			var a = clause(item);
+			var a = clause(item, i++);
 			r = r.concat(a);
 		}
 		return new LINQ(r);

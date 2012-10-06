@@ -17,14 +17,14 @@ class Test extends haxe.unit.TestCase{
 
 	public function testSelect():Void {
 		var r = new LINQ(people)
-				.select(function(p:Person) return p.firstName);
+				.select(function(p:Person,_) return p.firstName);
 		this.assertEquals(10,r.count());
 		this.assertTrue(Std.is(r.first(),String));
 	}
 
 	public function testSelectMany():Void {
 		var r = new LINQ(people)
-				.selectMany(function(p:Person) return p.bookIds);
+				.selectMany(function(p:Person,_) return p.bookIds);
 		this.assertEquals(30,r.count());
 		this.assertTrue(Std.is(r.first(),Int));
 	}
@@ -384,7 +384,7 @@ class Test extends haxe.unit.TestCase{
 				function(pet) return pet.owner,
 				function(person, petCollection) return {
 					ownerName: person.name,
-					pets: new LINQ(petCollection).select(function(pet) return pet.name)
+					pets: new LINQ(petCollection).select(function(pet,_) return pet.name)
 				}
 			);
 		
@@ -399,7 +399,7 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ(people)
 				.orderBy(function(p:Person) return p.firstName.charCodeAt(0))
 				.thenBy(function(p:Person) return p.lastName.charCodeAt(0))
-				.select(function(p:Person) return p.id);
+				.select(function(p:Person,_) return p.id);
 		this.assertEquals(10,r.count());
 		this.assertEquals("9,1,8,7,4,3,2,10,6,5",r.toArray().join(","));
 	}
@@ -408,7 +408,7 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ(people)
 				.orderBy(function(p:Person) return p.firstName.charCodeAt(0))
 				.thenByDescending(function(p:Person) return p.lastName.charCodeAt(0))
-				.select(function(p:Person) return p.id);
+				.select(function(p:Person,_) return p.id);
 		this.assertEquals(10,r.count());
 		this.assertEquals("9,8,1,7,3,4,6,10,2,5",r.toArray().join(","));
 	}
