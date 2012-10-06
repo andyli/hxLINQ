@@ -230,14 +230,14 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(result);
 	}
 
-	public function defaultIfEmpty(defaultValue:C):C {
-		return any() ? items : defaultValue;
+	public function defaultIfEmpty(defaultValue:C):LINQ<T,C> {
+		return new LINQ(any() ? items : defaultValue);
 	}
 
 	public function elementAtOrDefault(i:Int, defaultValue:T):T {
 		if (i < 0) return defaultValue;
 		var r = this.elementAt(i);
-		return r == null ? defaultValue : r;
+		return r == null ? defaultValue : r; //TO-DO
 	}
 
 	public function firstOrDefault(defaultValue:T):T {

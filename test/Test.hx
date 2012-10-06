@@ -217,7 +217,7 @@ class Test extends haxe.unit.TestCase{
 	public function testDefaultIfEmpty():Void {
 		var r = new LINQ([])
 				.defaultIfEmpty(people);
-		this.assertEquals(people,r);
+		this.assertEquals(10,r.count());
 	}
 
 	public function testElementAtOrDefault():Void {
