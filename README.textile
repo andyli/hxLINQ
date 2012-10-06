@@ -1,17 +1,14 @@
 h1. hxLINQ
 
-HaXe version of LINQ. Based on the "LINQ to JavaScript (JSLINQ)":http://jslinq.codeplex.com Project.
+LINQ style in Haxe.
 
-JSLINQ is licensed under the Microsoft Reciprocal License (Ms-RL).
-Copyright (C) 2009 "Chris Pietschmann":http://pietschsoft.com . All rights reserved.
-The license can be found "here":http://jslinq.codeplex.com/license .
+Originally based on the "LINQ to JavaScript (JSLINQ)":http://jslinq.codeplex.com Project,
+but was heavily modified to bring it closer to the original C# LINQ.
 
-h1. Usage
+h2. Usage
 
-It is very similat to using "JSLINQ":http://jslinq.codeplex.com/ . You may look at *Test.hx*.
+You can refer to the original "LINQ documentation":http://msdn.microsoft.com/en-us/library/bb308959.aspx / "API list":http://msdn.microsoft.com/en-us/library/system.linq.enumerable_methods.aspx , 
+or look at *Test.hx*.
 
-You can also refer to the original "LINQ documentation":http://msdn.microsoft.com/en-us/library/bb308959.aspx.
-
-h1. Known bugs
-
-None.
+Haxe user should find it very similar to the "Lambda":http://haxe.org/api/lambda class.
+hxLINQ is Array based and basically a super set of Lambda. 
