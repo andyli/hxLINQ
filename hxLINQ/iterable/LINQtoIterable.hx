@@ -273,6 +273,22 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return any() ? last() : defaultValue;
 	}
 	
+	public function toArray():Array<T> {
+		var array = [];
+		for (_item in items){
+			array.push(_item);
+		}
+		return array;
+	}
+	
+	public function toList():List<T> {
+		var list = new List<T>();
+		for (_item in items){
+			list.add(_item);
+		}
+		return list;
+	}
+	
 	static private function indexOf<F>(items:Iterable<F>, item:F):Int {
 		var i = 0;
 		for (_item in items) {
@@ -283,14 +299,6 @@ class LINQtoIterable<T,C:Iterable<T>> {
 			}
 		}
 		return -1;
-	}
-	
-	public function toArray():Array<T> {
-		var array = [];
-		for (_item in items){
-			array.push(_item);
-		}
-		return array;
 	}
 }
 
