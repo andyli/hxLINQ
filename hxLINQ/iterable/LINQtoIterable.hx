@@ -24,27 +24,27 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return items.iterator();
 	}
 
-	public function where(clause:T->Int->Bool):LINQ<T,List<T>> {
+	public function where(clause:T->Int->Bool):LINQ<T,Array<T>> {
 		var i = 0;
-		var newList = new List<T>();
+		var newArray = new Array<T>();
 		for (item in items) {
 			if (clause(item,i++)) {
-				newList.add(item);
+				newArray.push(item);
 			}
 		}
-		return new LINQ(newList);
+		return new LINQ(newArray);
 	}
 
-	public function select<F>(clause:T->F):LINQ<F,List<F>> {
-		var newList = new List<F>();
+	public function select<F>(clause:T->F):LINQ<F,Array<F>> {
+		var newArray = new Array<F>();
 		
 		for (item in items) {
 			var newItem = clause(item);
 			if (newItem != null) {
-				newList.add(newItem);
+				newArray.push(newItem);
 			}
 		}
-		return new LINQ(newList);
+		return new LINQ(newArray);
 	}
 
 	public function orderBy<T2>(clause:T->T2):OrderedLINQ<T,Array<T>> {
@@ -72,19 +72,19 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	}
 
 	public function groupBy<F>(clause:T->F) : LINQ<Grouping<F,T>,Array<Grouping<F,T>>> {
-		var lists = new Array<Grouping<F,T>>();
+		var arrays = new Array<Grouping<F,T>>();
 		
 		for (item in items) {
 			var f = clause(item);
-			var list = new LINQ(lists).where(function(g:Grouping<F,T>, i:Int) return g.key == f).first();
-			if (list == null) {	
-				list = new Grouping<F,T>(f);
-				lists.push(list);
+			var group = new LINQ(arrays).where(function(g:Grouping<F,T>, i:Int) return g.key == f).first();
+			if (group == null) {	
+				group = new Grouping<F,T>(f);
+				arrays.push(group);
 			}
-			list.add(item);
+			group.add(item);
 		}
 
-		return new LINQ(lists);
+		return new LINQ(arrays);
 	}
 
 	public function selectMany<F>(clause:T->Array<F>):LINQ<F,Array<F>> {
@@ -142,13 +142,13 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return this.sum(clause)/this.count();
 	}
 
-	public function distinct<F>(clause:T->F):LINQ<F,List<F>> {
+	public function distinct<F>(clause:T->F):LINQ<F,Array<F>> {
 		var newItem;
-		var retVal = new List<F>();
+		var retVal = new Array<F>();
 		for (item in items) {
 			newItem = clause(item);
 			if (!new LINQ(retVal).any(function (f:F, i) return f == newItem)) {
-				retVal.add(newItem);
+				retVal.push(newItem);
 			}
 		}
 		return new LINQ(retVal);
@@ -215,18 +215,18 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(tmpAry.concat(new LINQ(items).toArray()));
 	}
 
-	public function intersect<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,List<T>> {
+	public function intersect<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
 		if (clause == null){
 			clause = function (item:T, index:Int, item2:Dynamic, index2:Int) { return item == item2; };
 		}
 
-		var result = new List<T>();
+		var result = new Array<T>();
 		var ia = 0;
 		var ib = 0;
 		for (a in this.items) {
 			for (b in items) {
 				if (clause(a,ia,b,ib++)) {
-					result.add(a);
+					result.push(a);
 				}
 			}
 			++ia;

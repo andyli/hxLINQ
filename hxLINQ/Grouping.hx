@@ -3,15 +3,15 @@ package hxLINQ;
 @:allow(hxLINQ)
 class Grouping<K,V> {
 	public var key(default,null):K;
-	private var values:List<V>;
+	private var values:Array<V>;
 
 	public function new(key:K):Void {
 		this.key = key;
-		values = new List<V>();
+		values = new Array<V>();
 	}
 
 	private function add(val:V):Void {
-		values.add(val);
+		values.push(val);
 	}
 
 	public function iterator():Iterator<V> {
