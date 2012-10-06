@@ -12,8 +12,12 @@ package hxLINQ.iterable;
 import hxLINQ.*;
 
 class LINQtoIterable<T,C:Iterable<T>> {
+	public var items(default, null):C;
+	public var defaultValue(default, null):T;
+	
 	public function new(dataItems:C):Void {
 		this.items = dataItems;
+		this.defaultValue = null;
 	}
 
 	public function iterator():Iterator<T> {
@@ -230,25 +234,27 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(result);
 	}
 
-	public function defaultIfEmpty(defaultValue:C):LINQ<T,C> {
-		return new LINQ(any() ? items : defaultValue);
+	public function defaultIfEmpty(?defaultValue:T):LINQ<T,C> {
+		var r = new LINQ(items);
+		r.defaultValue = defaultValue;
+		return r;
 	}
 
-	public function elementAtOrDefault(i:Int, defaultValue:T):T {
-		if (i < 0) return defaultValue;
-		var r = this.elementAt(i);
-		return r == null ? defaultValue : r; //TO-DO
+	public function elementAtOrDefault(i:Int):T {
+		var count = 0;
+		for (item in items) {
+			if (count++ == i) return item;
+		}
+		return defaultValue;
 	}
 
-	public function firstOrDefault(defaultValue:T):T {
+	public function firstOrDefault():T {
 		return any() ? first() : defaultValue;
 	}
 
-	public function lastOrDefault(defaultValue:T):T {
+	public function lastOrDefault():T {
 		return any() ? last() : defaultValue;
 	}
-
-	public var items(default,null):C;
 	
 	static private function indexOf<F>(items:Iterable<F>, item:F):Int {
 		var i = 0;

@@ -165,14 +165,12 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testFirst():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.first(function(p:Person,i:Int) return p.firstName == "Chris");
 		this.assertEquals("Chris",r.firstName);
 		this.assertEquals(1,r.id);
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.first(function(p:Person,i:Int) return p.firstName == "Chris" && i == 0);
 		this.assertEquals("Chris",r.firstName);
 		this.assertEquals(1,r.id);
@@ -216,32 +214,78 @@ class Test extends haxe.unit.TestCase{
 
 	public function testDefaultIfEmpty():Void {
 		var r = new LINQ([])
-				.defaultIfEmpty(people);
-		this.assertEquals(10,r.count());
+				.defaultIfEmpty(123);
+		this.assertEquals(123,r.firstOrDefault());
+		
+		var r = new LINQ([])
+				.defaultIfEmpty();
+		this.assertEquals(null,r.firstOrDefault());
+		
+		var r = new LINQ<Null<Int>, Array<Null<Int>>>([])
+				.defaultIfEmpty(123)
+				.defaultIfEmpty();
+		this.assertEquals(null,r.firstOrDefault());
 	}
 
 	public function testElementAtOrDefault():Void {
-		var defualt = { id: 0, firstName: "", lastName: "", bookIds: [] };
+		var d = { id: 0, firstName: "", lastName: "", bookIds: [] };
 
 		var r = new LINQ(people)
-				.elementAtOrDefault(150,defualt);
-		this.assertEquals(defualt,r);
+			.elementAtOrDefault(150);
+		this.assertEquals(null,r);
+
+		var r = new LINQ(people)
+			.defaultIfEmpty(d)
+			.elementAtOrDefault(150);
+		this.assertEquals(d,r);
 	}
 
 	public function testFirstOrDefault():Void {
-		var defualt = { id: 999, firstName: "Johny", lastName: "Stone", bookIds:[999]};
+		var d = { id: 999, firstName: "Johny", lastName: "Stone", bookIds:[999]};
 
+		var r = new LINQ([])
+			.firstOrDefault();
+		this.assertEquals(null, r);
+		
+		var r = new LINQ([])
+			.defaultIfEmpty(d)
+			.firstOrDefault();
+		this.assertEquals("Johny",r.firstName);
+		
 		var r = new LINQ(people)
-				.firstOrDefault(defualt);
+			.firstOrDefault();
+		this.assertEquals("Chris",r.firstName);
+		
+		var r = new LINQ(people)
+			.defaultIfEmpty(d)
+			.firstOrDefault();
 		this.assertEquals("Chris",r.firstName);
 	}
 
 	public function testLastOrDefault():Void {
-		var defualt = { id: 999, firstName: "Johny", lastName: "Stone", bookIds:[999]};
+		var d = { id: 999, firstName: "Johny", lastName: "Stone", bookIds:[999]};
 
+		var r = new LINQ([])
+			.lastOrDefault();
+		this.assertEquals(null, r);
+		
+		var r = new LINQ([])
+			.defaultIfEmpty(d)
+			.lastOrDefault();
+		this.assertEquals("Johny",r.firstName);
+		
 		var r = new LINQ(people)
-				.lastOrDefault(defualt);
+			.lastOrDefault();
 		this.assertEquals("Kate",r.firstName);
+		
+		var r = new LINQ(people)
+			.defaultIfEmpty(d)
+			.lastOrDefault();
+		this.assertEquals("Kate",r.firstName);
+
+		var r = new LINQ([])
+				.lastOrDefault();
+		this.assertEquals(null, r);
 	}
 
 	public function testGroupBy():Void {
