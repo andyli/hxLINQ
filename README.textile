@@ -1,6 +1,6 @@
 h1. hxLINQ
 
-LINQ style in Haxe.
+An implementation of LINQ in Haxe.
 
 Originally based on the "LINQ to JavaScript (JSLINQ)":http://jslinq.codeplex.com Project,
 but was heavily modified to bring it closer to the original C# LINQ.
