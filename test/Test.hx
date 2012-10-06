@@ -327,6 +327,40 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(6,r.count());
 	}
 
+	public function testJoin():Void {
+		var magnus = { name: "Hedlund, Magnus" };
+		var terry = { name: "Adams, Terry" };
+		var charlotte = { name: "Weiss, Charlotte" };
+
+		var barley = { name: "Barley", owner: terry };
+		var boots = { name: "Boots", owner: terry };
+		var whiskers = { name: "Whiskers", owner: charlotte };
+		var daisy = { name: "Daisy", owner: magnus };
+
+		var people = [magnus, terry, charlotte];
+		var pets = [barley, boots, whiskers, daisy];
+
+		// Create a list of Person-Pet pairs where 
+		// each element is an anonymous type that contains a  
+		// Pet's name and the name of the Person that owns the Pet. 
+		var query = new LINQ(people)
+			.join(
+				pets,
+				function(person) return person,
+				function(pet) return pet.owner,
+				function(person, pet) return {
+					ownerName: person.name,
+					pet: pet.name
+				}
+			);
+		
+		this.assertEquals(4,query.count());
+		
+		this.assertEquals("Daisy",query.elementAt(0).pet);
+		
+		this.assertEquals(2,query.count(function(pair,i) return pair.ownerName == "Adams, Terry"));
+	}
+
 	public function testGroupJoin():Void {
 		var magnus = { name: "Hedlund, Magnus" };
 		var terry = { name: "Adams, Terry" };

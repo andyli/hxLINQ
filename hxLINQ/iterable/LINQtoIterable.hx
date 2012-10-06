@@ -87,6 +87,23 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(arrays);
 	}
 	
+	public function join<T2,K,R>(inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->T2->R, ?comparer:K->Int->K->Int->Bool):LINQ<R,Array<R>> {
+		if (comparer == null) comparer = function(ka,_,kb,_) return ka == kb;
+		var result = new Array<R>();
+		var i = 0;
+		for (a in this.items) {
+			var ka = outerKeySelector(a);
+			var i2 = 0;
+			for (b in inner) {
+				if (comparer(ka,i,innerKeySelector(b),i2++)) {
+					result.push(resultSelector(a, b));
+				}
+			}
+			++i;
+		}
+		return new LINQ(result);
+	}
+	
 	public function groupJoin<T2,K,R>(inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->Iterable<T2>->R, ?comparer:K->Int->K->Int->Bool):LINQ<R,Array<R>> {
 		if (comparer == null) comparer = function(ka,_,kb,_) return ka == kb;
 		var result = new Array<R>();
