@@ -71,7 +71,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new OrderedLINQ(tempArray, [sortFn]);
 	}
 
-	public function groupBy<F>(clause:T->F) : LINQ<Grouping<F,T>,Array<Grouping<F,T>>> {
+	public function groupBy<F>(clause:T->F):LINQ<Grouping<F,T>,Array<Grouping<F,T>>> {
 		var arrays = new Array<Grouping<F,T>>();
 		
 		for (item in items) {
@@ -85,6 +85,16 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 
 		return new LINQ(arrays);
+	}
+	
+	public function groupJoin<T2,K,R>(inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->Iterable<T2>->R, ?comparer:K->K->Bool):LINQ<R,Array<R>> {
+		if (comparer == null) comparer = function(ka,kb) return ka == kb;
+		var result = new Array<R>();
+		for (a in this.items) {
+			var ka = outerKeySelector(a);
+			result.push(resultSelector(a, new LINQ(inner).where(function(b,i) return comparer(innerKeySelector(b),ka))));
+		}
+		return new LINQ(result);
 	}
 
 	public function selectMany<F>(clause:T->Array<F>):LINQ<F,Array<F>> {
