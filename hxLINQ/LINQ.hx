@@ -11,8 +11,8 @@ package hxLINQ;
 
 using Lambda;
 
-class LINQ<T> {
-	public function new(dataItems:Iterable<T>):Void {
+class LINQ<T,C:Iterable<T>> {
+	public function new(dataItems:C):Void {
 		this.items = dataItems;
 	}
 
@@ -20,7 +20,7 @@ class LINQ<T> {
 		return items.iterator();
 	}
 
-	public function where(clause:T->Int->Bool):LINQ<T> {
+	public function where(clause:T->Int->Bool):LINQ<T,List<T>> {
 		var i = 0;
 		var newList = new List<T>();
 		for (item in items) {
@@ -31,7 +31,7 @@ class LINQ<T> {
 		return new LINQ(newList);
 	}
 
-	public function select<F>(clause:T->F):LINQ<F> {
+	public function select<F>(clause:T->F):LINQ<F,List<F>> {
 		var newList = new List<F>();
 		
 		for (item in items) {
@@ -43,7 +43,7 @@ class LINQ<T> {
 		return new LINQ(newList);
 	}
 
-	public function orderBy<T2>(clause:T->T2):OrderedLINQ<T> {
+	public function orderBy<T2>(clause:T->T2):OrderedLINQ<T,Array<T>> {
 		var tempArray = items.array();
 		var sortFn = function(a, b) {
 			var x = clause(a);
@@ -55,7 +55,7 @@ class LINQ<T> {
 		return new OrderedLINQ(tempArray, [sortFn]);
 	}
 
-	public function orderByDescending<T2>(clause:T->T2):OrderedLINQ<T> {
+	public function orderByDescending<T2>(clause:T->T2):OrderedLINQ<T,Array<T>> {
 		var tempArray = items.array();
 		var sortFn = function(a, b) {
 			var x = clause(b);
@@ -67,12 +67,12 @@ class LINQ<T> {
 		return new OrderedLINQ(tempArray, [sortFn]);
 	}
 
-	public function groupBy<F>(clause:T->F) : LINQ<IGrouping<F,T>> {
+	public function groupBy<F>(clause:T->F) : LINQ<Grouping<F,T>,Array<Grouping<F,T>>> {
 		var lists = new Array<Grouping<F,T>>();
 		
 		for (item in items) {
 			var f = clause(item);
-			var list = new LINQ(lists).where(function(g:IGrouping<F,T>, i:Int) return g.key == f).first();
+			var list = new LINQ(lists).where(function(g:Grouping<F,T>, i:Int) return g.key == f).first();
 			if (list == null) {	
 				list = new Grouping<F,T>(f);
 				lists.push(list);
@@ -80,10 +80,10 @@ class LINQ<T> {
 			list.add(item);
 		}
 
-		return new LINQ(cast lists);
+		return new LINQ(lists);
 	}
 
-	public function selectMany<F>(clause:T->Array<F>):LINQ<F> {
+	public function selectMany<F>(clause:T->Array<F>):LINQ<F,Array<F>> {
 		var r = new Array<F>();
 		for (item in items){
 			var a = clause(item);
@@ -136,7 +136,7 @@ class LINQ<T> {
 		return this.sum(clause)/this.count();
 	}
 
-	public function distinct<F>(clause:T->F):LINQ<F> {
+	public function distinct<F>(clause:T->F):LINQ<F,List<F>> {
 		var newItem;
 		var retVal = new List<F>();
 		for (item in items) {
@@ -168,7 +168,7 @@ class LINQ<T> {
 		return true;
 	}
 
-	public function reverse():LINQ<T> {
+	public function reverse():LINQ<T,Array<T>> {
 		var tempAry = items.array();
 		tempAry.reverse();
 		return new LINQ(tempAry);
@@ -202,12 +202,12 @@ class LINQ<T> {
 		return null;
 	}
 
-	public function concat(items:Iterable<T>):LINQ<T> {
+	public function concat(items:Iterable<T>):LINQ<T,Array<T>> {
 		var tmpAry = this.items.array();
 		return new LINQ(tmpAry.concat(items.array()));
 	}
 
-	public function intersect<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T> {
+	public function intersect<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,List<T>> {
 		if (clause == null){
 			clause = function (item:T, index:Int, item2:Dynamic, index2:Int) { return item == item2; };
 		}
@@ -250,7 +250,7 @@ class LINQ<T> {
 		return r == null ? defaultValue : r;
 	}
 
-	private var items:Iterable<T>;
+	public var items(default,null):C;
 	
 	static private function indexOf<F>(items:Iterable<F>, item:F):Int {
 		var i = 0;
@@ -265,22 +265,23 @@ class LINQ<T> {
 	}
 }
 
-private class OrderedLINQ<T> extends LINQ<T> {
+class OrderedLINQ<T,C:Iterable<T>> extends LINQ<T,C> {
 	private var sortFns:Array<T->T->Int>;
 
-	public function new(dataItems:Iterable<T>, sortFns:Array<T->T->Int>) {
+	public function new(dataItems:C, sortFns:Array<T->T->Int>) {
 		super(dataItems);
 		this.sortFns = sortFns;
 	}
 	
-	public function thenBy<T2>(clause:T->T2):OrderedLINQ<T> {
+	public function thenBy<T2>(clause:T->T2):OrderedLINQ<T,Array<T>> {
 		var tempArray:Array<T> = items.array();
-		var _sortFns = sortFns.copy();
-		_sortFns.push(function(a, b) {
-			var x = clause(a);
-            var y = clause(b);
-			return Reflect.compare(x,y);
-		});
+		var _sortFns = sortFns.concat([
+			function(a, b) {
+				var x = clause(a);
+	            var y = clause(b);
+				return Reflect.compare(x,y);
+			}
+		]);
 
 		tempArray.sort(function(a, b) {
 			var r:Int = 0;
@@ -295,14 +296,15 @@ private class OrderedLINQ<T> extends LINQ<T> {
 		return new OrderedLINQ(tempArray, _sortFns);
 	}
 
-	public function thenByDescending<T2>(clause:T->T2):OrderedLINQ<T> {
+	public function thenByDescending<T2>(clause:T->T2):OrderedLINQ<T,Array<T>> {
 		var tempArray:Array<T> = items.array();
-		var _sortFns = sortFns.copy();
-		_sortFns.push(function(a, b) {
-			var x = clause(b);
-            var y = clause(a);
-			return Reflect.compare(x,y);
-		});
+		var _sortFns = sortFns.concat([
+			function(a, b) {
+				var x = clause(b);
+	            var y = clause(a);
+				return Reflect.compare(x,y);
+			}
+		]);
 
 		tempArray.sort(function(a, b) {
 			var r:Int = 0;
@@ -318,14 +320,8 @@ private class OrderedLINQ<T> extends LINQ<T> {
 	}
 }
 
-
-interface IGrouping<K,V> {
-	public var key(default,null):K;
-
-	public function iterator():Iterator<V>;
-}
-
-private class Grouping<K,V> implements IGrouping<K,V> {
+@:allow(hxLINQ.LINQ)
+private class Grouping<K,V> {
 	public var key(default,null):K;
 	private var values:List<V>;
 
@@ -334,7 +330,7 @@ private class Grouping<K,V> implements IGrouping<K,V> {
 		values = new List<V>();
 	}
 
-	public function add(val:V):Void {
+	private function add(val:V):Void {
 		values.add(val);
 	}
 

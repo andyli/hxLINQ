@@ -1,4 +1,5 @@
 -main Test
 -cpp bin
+-cp test
 
 -cmd ./bin/Test

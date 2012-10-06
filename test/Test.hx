@@ -8,37 +8,31 @@ class Test extends haxe.unit.TestCase{
 	public function testWhere():Void {
 		var r;
 		
-		r = 	new LINQ(people)
+		r = new LINQ(people)
 				.where(function(p:Person, i:Int) return p.firstName == "Chris");
 		this.assertEquals(2,r.count());
 
-		r = 	new LINQ(people)
+		r = new LINQ(people)
 				.where(function(p:Person, i:Int) return p.firstName == "Chris" && i == 0);
 		this.assertEquals(1,r.count());
 	}
 
 	public function testSelect():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.select(function(p:Person) return p.firstName);
 		this.assertEquals(10,r.count());
 		this.assertTrue(Std.is(r.first(),String));
 	}
 
 	public function testSelectMany():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.selectMany(function(p:Person) return p.bookIds);
 		this.assertEquals(30,r.count());
 		this.assertTrue(Std.is(r.first(),Int));
 	}
 
 	public function testOrderBy():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.orderBy(function(p:Person) return p.firstName.charCodeAt(0));
 		this.assertEquals(10,r.count());
 		this.assertEquals("Bernard",r.first().firstName);
@@ -46,9 +40,7 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testOrderByDescending():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.orderByDescending(function(p:Person) return p.firstName.charCodeAt(0));
 		this.assertEquals(10,r.count());
 		this.assertEquals("Bernard",r.last().firstName);
@@ -56,9 +48,7 @@ class Test extends haxe.unit.TestCase{
 	}
 	
 	public function testOrderByString():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.orderBy(function(p:Person) return p.firstName);
 		this.assertEquals(10, r.count());
 		this.assertEquals("Bernard",r.first().firstName);
@@ -66,9 +56,7 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testOrderByStringDescending():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.orderByDescending(function(p:Person) return p.firstName);
 		this.assertEquals(10,r.count());
 		this.assertEquals("Bernard",r.last().firstName);
@@ -134,9 +122,7 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testDistinct():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.distinct(function(p:Person) return p.firstName);
 		this.assertEquals(8,r.count());
 	}
@@ -166,9 +152,7 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testReverse():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.reverse();
 		this.assertEquals(10,r.count());
 		this.assertEquals("Kate",r.first().firstName);
@@ -204,9 +188,7 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testElementAt():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.elementAt(1);
 		this.assertEquals("Kate",r.firstName);
 		this.assertEquals(2,r.id);
@@ -240,45 +222,38 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testElementAtOrDefault():Void {
-		var r;
 		var defualt = { id: 0, firstName: "", lastName: "", bookIds: [] };
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.elementAtOrDefault(150,defualt);
 		this.assertEquals(defualt,r);
 	}
 
 	public function testFirstOrDefault():Void {
-		var r;
 		var defualt = { id: 999, firstName: "Johny", lastName: "Stone", bookIds:[999]};
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.firstOrDefault(defualt);
 		this.assertEquals("Chris",r.firstName);
 	}
 
 	public function testLastOrDefault():Void {
-		var r;
 		var defualt = { id: 999, firstName: "Johny", lastName: "Stone", bookIds:[999]};
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.lastOrDefault(defualt);
 		this.assertEquals("Kate",r.firstName);
 	}
 
 	public function testGroupBy():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.groupBy(function(p:Person) return p.firstName.charAt(0));
 		
 		this.assertEquals(6,r.count());
 	}
 
 	public function testThenBy():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.orderBy(function(p:Person) return p.firstName.charCodeAt(0))
 				.thenBy(function(p:Person) return p.lastName.charCodeAt(0))
 				.select(function(p:Person) return p.id);
@@ -287,9 +262,7 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testThenByDescending():Void {
-		var r;
-
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.orderBy(function(p:Person) return p.firstName.charCodeAt(0))
 				.thenByDescending(function(p:Person) return p.lastName.charCodeAt(0))
 				.select(function(p:Person) return p.id);
