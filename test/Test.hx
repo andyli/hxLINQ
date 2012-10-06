@@ -144,6 +144,17 @@ class Test extends haxe.unit.TestCase{
 		this.assertFalse(r);
 	}
 
+	public function testContains():Void {
+		var p = people[1];		
+		var r = new LINQ(people)
+				.contains(p);
+		this.assertTrue(r);
+
+		var r = new LINQ(people)
+				.contains(null);
+		this.assertFalse(r);
+	}
+
 	public function testAll():Void {
 		var r;
 

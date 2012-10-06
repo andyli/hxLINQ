@@ -153,6 +153,14 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return new LINQ(retVal);
 	}
+	
+	public function contains(value:T, ?comparer:T->T->Bool):Bool {
+		if (comparer == null) comparer = function(a,b) return a == b;
+		for (item in items) {
+			if (comparer(item, value)) return true;
+		}
+		return false;
+	}
 
 	public function any(?clause:T->Int->Bool):Bool {
 		if (clause == null) return items.iterator().hasNext();
