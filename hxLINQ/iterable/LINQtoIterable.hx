@@ -231,11 +231,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	}
 
 	public function defaultIfEmpty(defaultValue:C):C {
-		if (!any()) {
-			return defaultValue;
-		} else {
-			return items;
-		}
+		return any() ? items : defaultValue;
 	}
 
 	public function elementAtOrDefault(i:Int, defaultValue:T):T {
