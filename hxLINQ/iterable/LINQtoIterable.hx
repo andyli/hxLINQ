@@ -87,12 +87,14 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(arrays);
 	}
 	
-	public function groupJoin<T2,K,R>(inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->Iterable<T2>->R, ?comparer:K->K->Bool):LINQ<R,Array<R>> {
-		if (comparer == null) comparer = function(ka,kb) return ka == kb;
+	public function groupJoin<T2,K,R>(inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->Iterable<T2>->R, ?comparer:K->Int->K->Int->Bool):LINQ<R,Array<R>> {
+		if (comparer == null) comparer = function(ka,_,kb,_) return ka == kb;
 		var result = new Array<R>();
+		var i = 0;
 		for (a in this.items) {
 			var ka = outerKeySelector(a);
-			result.push(resultSelector(a, new LINQ(inner).where(function(b,i) return comparer(innerKeySelector(b),ka))));
+			result.push(resultSelector(a, new LINQ(inner).where(function(b,i2) return comparer(ka,i,innerKeySelector(b),i2))));
+			++i;
 		}
 		return new LINQ(result);
 	}
@@ -152,21 +154,24 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return this.sum(clause)/this.count();
 	}
 
-	public function distinct(?comparer:T->T->Bool):LINQ<T,Array<T>> {
-		if (comparer == null) comparer = function(a,b) return a == b;
+	public function distinct(?comparer:T->Int->T->Int->Bool):LINQ<T,Array<T>> {
+		if (comparer == null) comparer = function(a,_,b,_) return a == b;
 		var retVal = new Array<T>();
+		var i = 0;
 		for (item in items) {
-			if (!new LINQ(retVal).any(function(r,i) return comparer(r,item))) {
+			if (!new LINQ(retVal).any(function(r,i2) return comparer(r,i,item,i2))) {
 				retVal.push(item);
 			}
+			++i;
 		}
 		return new LINQ(retVal);
 	}
 	
-	public function contains(value:T, ?comparer:T->T->Bool):Bool {
-		if (comparer == null) comparer = function(a,b) return a == b;
+	public function contains(value:T, ?comparer:T->T->Int->Bool):Bool {
+		if (comparer == null) comparer = function(a,b,i) return a == b;
+		var i = 0;
 		for (item in items) {
-			if (comparer(item, value)) return true;
+			if (comparer(item, value, i++)) return true;
 		}
 		return false;
 	}
@@ -200,21 +205,21 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	}
 
 	public function first(?clause:T->Int->Bool):T {
-		if (clause != null) {
-			return this.where(clause).first();
+		return if (clause != null) {
+			this.where(clause).first();
 		} else {
-			return items.iterator().next();
+			items.iterator().next();
 		}
 	}
 
 	public function last(?clause:T->Int->Bool):T {
-		if (clause != null) {
-			return this.where(clause).last();
+		return if (clause != null) {
+			this.where(clause).last();
 		} else {
 			if (any()) {
-				return toArray().pop();
+				toArray().pop();
 			} else {
-				return null;
+				null;
 			}
 		}
 	}
@@ -228,8 +233,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	}
 
 	public function concat(items:Iterable<T>):LINQ<T,Array<T>> {
-		var tmpAry = toArray();
-		return new LINQ(tmpAry.concat(new LINQ(items).toArray()));
+		return new LINQ(toArray().concat(new LINQ(items).toArray()));
 	}
 
 	public function intersect<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
@@ -239,8 +243,8 @@ class LINQtoIterable<T,C:Iterable<T>> {
 
 		var result = new Array<T>();
 		var ia = 0;
-		var ib = 0;
 		for (a in this.items) {
+			var ib = 0;
 			for (b in items) {
 				if (clause(a,ia,b,ib++)) {
 					result.push(a);
@@ -259,7 +263,6 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		var result = new Array<T>();
 		var remove = new LINQ(items);
 		var ia = 0;
-		var ib = 0;
 		for (a in this.items) {
 			if (!remove.any(function(b,ib) return clause(a,ia,b,ib)))
 				result.push(a);

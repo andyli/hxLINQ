@@ -121,7 +121,7 @@ class Test extends haxe.unit.TestCase{
 
 	public function testDistinct():Void {
 		var r = new LINQ(people)
-				.distinct(function(p:Person,p2:Person) return p.firstName == p2.firstName);
+				.distinct(function(p:Person,_,p2:Person,_) return p.firstName == p2.firstName);
 		this.assertEquals(8,r.count());
 		
 		var r = new LINQ(people)
@@ -218,17 +218,17 @@ class Test extends haxe.unit.TestCase{
 
 	public function testIntersect():Void {
 		var nameList1 = ["Chris","Steve","John"];
-        var nameList2 = ["Katie","Chris","John", "Aaron"];
-        var sample = new LINQ(nameList1).intersect(nameList2);
-        this.assertEquals(2,sample.count());
+		var nameList2 = ["Katie","Chris","John", "Aaron"];
+		var sample = new LINQ(nameList1).intersect(nameList2);
+		this.assertEquals(2,sample.count());
 
-        sample = new LINQ(nameList1)
-        	.intersect(new LINQ(nameList2));
-        this.assertEquals(2,sample.count());
+		sample = new LINQ(nameList1)
+			.intersect(new LINQ(nameList2));
+		this.assertEquals(2,sample.count());
 
-        var sample2 = new LINQ(people)
-        	.intersect(nameList2, function(item:Person, index:Int, item2:String, index2:Int) return item.firstName == item2);
-        this.assertEquals(4,sample2.count());
+		var sample2 = new LINQ(people)
+			.intersect(nameList2, function(item:Person, index:Int, item2:String, index2:Int) return item.firstName == item2);
+		this.assertEquals(4,sample2.count());
 	}
 	
 	public function testExcept():Void {
@@ -325,6 +325,40 @@ class Test extends haxe.unit.TestCase{
 				.groupBy(function(p:Person) return p.firstName.charAt(0));
 		
 		this.assertEquals(6,r.count());
+	}
+
+	public function testGroupJoin():Void {
+		var magnus = { name: "Hedlund, Magnus" };
+		var terry = { name: "Adams, Terry" };
+		var charlotte = { name: "Weiss, Charlotte" };
+
+		var barley = { name: "Barley", owner: terry };
+		var boots = { name: "Boots", owner: terry };
+		var whiskers = { name: "Whiskers", owner: charlotte };
+		var daisy = { name: "Daisy", owner: magnus };
+
+		var people = [magnus, terry, charlotte];
+		var pets = [barley, boots, whiskers, daisy];
+
+		// Create a list where each element is an anonymous  
+		// type that contains a person's name and  
+		// a collection of names of the pets they own. 
+		var query = new LINQ(people)
+			.groupJoin(
+				pets,
+				function(person) return person,
+				function(pet) return pet.owner,
+				function(person, petCollection) return {
+					ownerName: person.name,
+					pets: new LINQ(petCollection).select(function(pet) return pet.name)
+				}
+			);
+		
+		this.assertEquals(3,query.count());
+		
+		this.assertEquals("Adams, Terry",query.elementAt(1).ownerName);
+		
+		this.assertEquals(2,query.elementAt(1).pets.count());
 	}
 
 	public function testThenBy():Void {
