@@ -12,6 +12,10 @@ package hxLINQ.iterable;
 import hxLINQ.*;
 
 class LINQtoIterable<T,C:Iterable<T>> {
+	inline static public function linq<T,C:Iterable<T>>(iterable:C):LINQ<T,C> {
+		return new LINQ(iterable);
+	}
+	
 	public var items(default, null):C;
 	public var defaultValue(default, null):T;
 	
@@ -308,6 +312,16 @@ class LINQtoIterable<T,C:Iterable<T>> {
 
 	public function lastOrDefault():T {
 		return any() ? last() : defaultValue;
+	}
+	
+	public function ofType<T2>(type:Class<T2>):LINQ<T2,Array<T2>> {
+		var newArray = new Array<T2>();
+		for (item in items) {
+			if (Std.is(item,type)) {
+				newArray.push(cast item);
+			}
+		}
+		return new LINQ(newArray);
 	}
 	
 	public function toArray():Array<T> {
