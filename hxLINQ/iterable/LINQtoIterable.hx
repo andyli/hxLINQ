@@ -381,18 +381,6 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return list;
 	}
-	
-	static private function indexOf<F>(items:Iterable<F>, item:F):Int {
-		var i = 0;
-		for (_item in items) {
-			if (_item == item) {
-				return i;
-			} else {
-				i++;
-			}
-		}
-		return -1;
-	}
 }
 
 class OrderedLINQ<T,C:Iterable<T>> extends LINQ<T,C> {
