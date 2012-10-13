@@ -33,6 +33,11 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ(people).skip(2);
 		this.assertEquals(8, r.count());
 	}
+	
+	public function testTake():Void {
+		var r = new LINQ(people).take(2);
+		this.assertEquals(2, r.count());
+	}
 
 	public function testOrderBy():Void {
 		var r = new LINQ(people)
