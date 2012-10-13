@@ -1,4 +1,4 @@
-import hxLINQ.LINQ;
+using hxLINQ.LINQ;
 
 typedef Person = { id:Int , firstName:String, lastName:String, bookIds:Array<Int> };
 
