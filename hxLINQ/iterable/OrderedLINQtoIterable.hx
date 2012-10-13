@@ -15,7 +15,7 @@ class OrderedLINQtoIterable<T,C:Iterable<T>> extends LINQ<T,C> {
 		var _sortFns = linq.sortFns.concat([
 			function(a, b) {
 				var x = clause(a);
-	            var y = clause(b);
+				var y = clause(b);
 				return Reflect.compare(x,y);
 			}
 		]);
@@ -23,11 +23,11 @@ class OrderedLINQtoIterable<T,C:Iterable<T>> extends LINQ<T,C> {
 		tempArray.sort(function(a, b) {
 			var r:Int = 0;
 			for (sortFn in _sortFns){
-		        r = sortFn(a,b);
-		        if (r != 0) break;
+				r = sortFn(a,b);
+				if (r != 0) break;
 			}
 			
-            return r;
+			return r;
 		});
 		
 		return new OrderedLINQ(tempArray, _sortFns);
@@ -38,7 +38,7 @@ class OrderedLINQtoIterable<T,C:Iterable<T>> extends LINQ<T,C> {
 		var _sortFns = linq.sortFns.concat([
 			function(a, b) {
 				var x = clause(b);
-	            var y = clause(a);
+				var y = clause(a);
 				return Reflect.compare(x,y);
 			}
 		]);
@@ -46,11 +46,11 @@ class OrderedLINQtoIterable<T,C:Iterable<T>> extends LINQ<T,C> {
 		tempArray.sort(function(a, b) {
 			var r:Int = 0;
 			for (sortFn in _sortFns){
-		        r = sortFn(a,b);
-		        if (r != 0) break;
+				r = sortFn(a,b);
+				if (r != 0) break;
 			}
 			
-            return r;
+			return r;
 		});
 
 		return new OrderedLINQ(tempArray, _sortFns);

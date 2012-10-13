@@ -49,7 +49,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		var tempArray = linq.toArray();
 		var sortFn = function(a, b) {
 			var x = clause(a);
-            var y = clause(b);
+			var y = clause(b);
 			return Reflect.compare(x,y);
 		}
 		tempArray.sort(sortFn);
@@ -61,7 +61,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		var tempArray = linq.toArray();
 		var sortFn = function(a, b) {
 			var x = clause(b);
-            var y = clause(a);
+			var y = clause(a);
 			return Reflect.compare(x,y);
 		}
 		tempArray.sort(sortFn);
