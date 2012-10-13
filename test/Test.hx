@@ -28,6 +28,11 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(30,r.count());
 		this.assertTrue(Std.is(r.first(),Int));
 	}
+	
+	public function testSkip():Void {
+		var r = new LINQ(people).skip(2);
+		this.assertEquals(8, r.count());
+	}
 
 	public function testOrderBy():Void {
 		var r = new LINQ(people)

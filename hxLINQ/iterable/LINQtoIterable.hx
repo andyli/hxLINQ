@@ -262,6 +262,21 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	public function concat(items:Iterable<T>):LINQ<T,Array<T>> {
 		return new LINQ(toArray().concat(new LINQ(items).toArray()));
 	}
+	
+	public function skip(count:Int):LINQ<T,Array<T>> {
+		return skipWhile(function(e,i) return i < count);
+	}
+	
+	public function skipWhile(predicate:T->Int->Bool):LINQ<T,Array<T>> {
+		var i = 0;
+		var newArray = new Array<T>();
+		for (item in items) {
+			if (newArray.length > 0 || !predicate(item,i++)) {
+				newArray.push(item);
+			}
+		}
+		return new LINQ(newArray);
+	}
 
 	public function intersect<T2>(items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
 		if (clause == null){
