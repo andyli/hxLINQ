@@ -130,7 +130,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 			for (_item in linq.items) ++i;
 			return i;
 		} else {
-			return count(where(linq, clause));
+			return linq.where(clause).count();
 		}
 	}
 
@@ -167,7 +167,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	}
 
 	static public function average<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Float):Float {
-		return linq.sum(clause)/count(linq);
+		return linq.sum(clause)/linq.count();
 	}
 
 	static public function distinct<T, C:Iterable<T>>(linq:LINQ<T,C>, ?comparer:T->Int->T->Int->Bool):LINQ<T,Array<T>> {
@@ -226,14 +226,14 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	
 	static public function single<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
 		return if (clause == null)
-			count(linq) == 1 ? linq.first() : throw "There is " + count(linq) + " items.";
+			linq.count() == 1 ? linq.first() : throw "There is " + linq.count() + " items.";
 		else 
-			where(linq, clause).single();
+			linq.where(clause).single();
 	}
 
 	static public function first<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
 		return if (clause != null) {
-			where(linq, clause).first();
+			linq.where(clause).first();
 		} else {
 			linq.items.iterator().next();
 		}
@@ -241,7 +241,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 
 	static public function last<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
 		return if (clause != null) {
-			where(linq, clause).last();
+			linq.where(clause).last();
 		} else {
 			if (linq.any()) {
 				linq.toArray().pop();
