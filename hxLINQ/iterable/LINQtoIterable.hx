@@ -10,8 +10,10 @@ class LINQtoIterable<T,C:Iterable<T>> {
 	public var items(default, null):C;
 	public var defaultValue(default, null):T;
 	
-	public function new(dataItems:C):Void {
-		this.items = dataItems;
+	public function new(items:C):Void {
+		if (items == null) throw "items should not be null.";
+		
+		this.items = items;
 		this.defaultValue = null;
 	}
 
@@ -189,6 +191,10 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return false;
 	}
+	
+	public function empty():Bool {
+		return !items.iterator().hasNext();
+	}
 
 	public function any(?clause:T->Int->Bool):Bool {
 		if (clause == null) return items.iterator().hasNext();
@@ -216,6 +222,10 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		var tempAry = toArray();
 		tempAry.reverse();
 		return new LINQ(tempAry);
+	}
+	
+	public function single():T {
+		return count() == 1 ? first() : throw "There is " + count() + " items.";
 	}
 
 	public function first(?clause:T->Int->Bool):T {

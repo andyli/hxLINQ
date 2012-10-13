@@ -152,6 +152,17 @@ class Test extends haxe.unit.TestCase{
 		this.assertFalse(r);
 	}
 
+	public function testEmpty():Void {
+		var r = new LINQ(people).empty();
+		this.assertFalse(r);
+		
+		var r = new LINQ([null]).empty();
+		this.assertFalse(r);
+		
+		var r = new LINQ([]).empty();
+		this.assertTrue(r);
+	}
+
 	public function testContains():Void {
 		var p = people[1];		
 		var r = new LINQ(people)
@@ -181,6 +192,19 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(10,r.count());
 		this.assertEquals("Kate",r.first().firstName);
 		this.assertEquals("Chris",r.last().firstName);
+	}
+	
+	public function testSingle():Void {
+		var r = new LINQ([1]).single();
+		this.assertEquals(1, r);
+		
+		var error = try {
+			new LINQ(people).single();
+			false;
+		} catch (e:Dynamic) {
+			true;
+		}
+		this.assertTrue(error);
 	}
 
 	public function testFirst():Void {
