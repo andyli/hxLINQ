@@ -130,7 +130,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 			for (_item in items) ++i;
 			return i;
 		} else {
-			return this.where(clause).count();
+			return where(clause).count();
 		}
 	}
 
@@ -224,8 +224,11 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return new LINQ(tempAry);
 	}
 	
-	public function single():T {
-		return count() == 1 ? first() : throw "There is " + count() + " items.";
+	public function single(?clause:T->Int->Bool):T {
+		return if (clause == null)
+			count() == 1 ? first() : throw "There is " + count() + " items.";
+		else 
+			where(clause).single();
 	}
 
 	public function first(?clause:T->Int->Bool):T {
@@ -308,13 +311,17 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return defaultValue;
 	}
-
-	public function firstOrDefault():T {
-		return any() ? first() : defaultValue;
+	
+	public function singleOrDefault(?clause:T->Int->Bool):T {
+		return any(clause) ? single(clause) : defaultValue;
 	}
 
-	public function lastOrDefault():T {
-		return any() ? last() : defaultValue;
+	public function firstOrDefault(?clause:T->Int->Bool):T {
+		return any(clause) ? first(clause) : defaultValue;
+	}
+
+	public function lastOrDefault(?clause:T->Int->Bool):T {
+		return any(clause) ? last(clause) : defaultValue;
 	}
 	
 	public function ofType<T2>(type:Class<T2>):LINQ<T2,Array<T2>> {

@@ -205,6 +205,28 @@ class Test extends haxe.unit.TestCase{
 			true;
 		}
 		this.assertTrue(error);
+		
+		var r = new LINQ(people).single(function(p,i) return p.firstName == "Josh");
+		this.assertEquals("Josh", r.firstName);
+	}
+	
+	public function testSingleOrDefault():Void {
+		var r = new LINQ([1]).singleOrDefault();
+		this.assertEquals(1, r);
+		
+		var error = try {
+			new LINQ(people).singleOrDefault();
+			false;
+		} catch (e:Dynamic) {
+			true;
+		}
+		this.assertTrue(error);
+		
+		var r = new LINQ([]).singleOrDefault();
+		this.assertEquals(null, r);
+		
+		var r = new LINQ(people).singleOrDefault(function(p,i) return p.firstName == "ABC");
+		this.assertEquals(null, r);
 	}
 
 	public function testFirst():Void {
