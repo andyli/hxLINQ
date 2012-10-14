@@ -255,6 +255,24 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		return null;
 	}
 
+	static public function sequenceEqual<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?comparer:T->T2->Int->Bool):Bool {
+		if (comparer == null){
+			comparer = function (item, item2, index) { return untyped item == item2; };
+		}
+		
+		var	it1 = linq.items.iterator(),
+			it2 = items.iterator(),
+			i = 0;
+		while (it1.hasNext() && it2.hasNext()) {
+			var a = it1.next();
+			var b = it2.next();
+			
+			if (!comparer(a, b, i++)) return false;
+		}
+		
+		return !(it1.hasNext() || it2.hasNext());
+	}
+
 	static public function concat<T, C:Iterable<T>>(linq:LINQ<T,C>, items:Iterable<T>):LINQ<T,Array<T>> {
 		return new LINQ(linq.toArray().concat(new LINQ(items).toArray()));
 	}

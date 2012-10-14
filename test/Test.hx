@@ -272,6 +272,20 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(2,r.id);
 	}
 	
+	public function testSequenceEqual():Void {
+		var r = new LINQ(people).sequenceEqual(people);
+		this.assertTrue(r);
+		
+		var r = new LINQ([1,2,3]).sequenceEqual([3,2,1]);
+		this.assertFalse(r);
+		
+		var r = new LINQ([1,2,3]).sequenceEqual([1,2,3,4]);
+		this.assertFalse(r);
+		
+		var r = new LINQ([1,2,3,4]).sequenceEqual([1,2,3]);
+		this.assertFalse(r);
+	}
+	
 	public function testUnion():Void {
 		var ints1 = [0, 1, 2];
 		var ints2 = [1, 2, 3];
