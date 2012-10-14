@@ -309,6 +309,22 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return new LINQ(result);
 	}
+
+	static public function union<T, C:Iterable<T>>(linq:LINQ<T,C>, items:Iterable<T>, ?comparer:T->Int->T->Int->Bool):LINQ<T,Array<T>> {
+		if (comparer == null){
+			comparer = function (item:T, index:Int, item2:T, index2:Int) { return item == item2; };
+		}
+		
+		var retVal = linq.toArray();
+		var i2 = 0;
+		for (b in items) {
+			if (!linq.any(function(a,i) return comparer(a,i,b,i2))) {
+				retVal.push(b);
+			}
+			++i2;
+		}
+		return new LINQ(retVal);
+	}
 	
 	static public function except<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
 		if (clause == null){
