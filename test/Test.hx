@@ -271,6 +271,18 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals("Kate",r.firstName);
 		this.assertEquals(2,r.id);
 	}
+	
+	public function testUnion():Void {
+		var ints1 = [0, 1, 2];
+		var ints2 = [1, 2, 3];
+		var r = new LINQ(ints1).union(ints2);
+		this.assertEquals(4, r.count());
+		
+		var ints1 = [5, 3, 9, 7, 5, 9, 3, 7];
+		var ints2 = [8, 3, 6, 4, 4, 9, 1, 0];
+		var r = new LINQ(ints1).union(ints2).distinct();
+		this.assertEquals("5 3 9 7 8 6 4 1 0", r.toArray().join(" "));
+	}
 
 	public function testIntersect():Void {
 		var nameList1 = ["Chris","Steve","John"];
