@@ -381,4 +381,28 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		}
 		return list;
 	}
+	
+	static public function toFastList<T, C:Iterable<T>>(linq:LINQ<T,C>):haxe.FastList<T> {
+		var list = new haxe.FastList<T>();
+		for (_item in linq.items){
+			list.add(_item);
+		}
+		return list;
+	}
+
+	static public function toHash<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->String):Hash<T> {
+		var hash = new Hash<T>();
+		for (item in linq.items) {
+			hash.set(keySelector(item), item);
+		}
+		return hash;
+	}
+
+	static public function toIntHash<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->Int):IntHash<T> {
+		var hash = new IntHash<T>();
+		for (item in linq.items) {
+			hash.set(keySelector(item), item);
+		}
+		return hash;
+	}
 }
