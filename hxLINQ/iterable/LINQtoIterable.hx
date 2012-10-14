@@ -17,10 +17,6 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		this.defaultValue = null;
 	}
 
-	public function iterator():Iterator<T> {
-		return items.iterator();
-	}
-
 	static public function where<T, C:Iterable<T>>(linq:LINQ<T,C>, clause:T->Int->Bool):LINQ<T,Array<T>> {
 		var i = 0;
 		var newArray = new Array<T>();
@@ -108,7 +104,7 @@ class LINQtoIterable<T,C:Iterable<T>> {
 		var i = 0;
 		for (a in linq.items) {
 			var ka = outerKeySelector(a);
-			result.push(resultSelector(a, where(new LINQ(inner), function(b,i2) return comparer(ka,i,innerKeySelector(b),i2))));
+			result.push(resultSelector(a, where(new LINQ(inner), function(b,i2) return comparer(ka,i,innerKeySelector(b),i2)).asIterable()));
 			++i;
 		}
 		return new LINQ(result);
@@ -404,5 +400,9 @@ class LINQtoIterable<T,C:Iterable<T>> {
 			hash.set(keySelector(item), item);
 		}
 		return hash;
+	}
+	
+	static public function asIterable<T, C:Iterable<T>>(linq:LINQ<T,C>):Iterable<T> {
+		return linq.items;
 	}
 }

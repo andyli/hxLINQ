@@ -279,7 +279,7 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(2,sample.count());
 
 		sample = new LINQ(nameList1)
-			.intersect(new LINQ(nameList2));
+			.intersect(nameList2);
 		this.assertEquals(2,sample.count());
 
 		var sample2 = new LINQ(people)
