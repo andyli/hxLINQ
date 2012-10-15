@@ -2,21 +2,7 @@ package hxLINQ.iterable;
 
 using hxLINQ.LINQ;
 
-class LINQtoIterable<T,C:Iterable<T>> {
-	inline static public function linq<T,C:Iterable<T>>(iterable:C):LINQ<T,C> {
-		return new LINQ(iterable);
-	}
-	
-	public var items(default, null):C;
-	public var defaultValue(default, null):T;
-	
-	public function new(items:C):Void {
-		if (items == null) throw "items should not be null.";
-		
-		this.items = items;
-		this.defaultValue = null;
-	}
-
+class LINQtoIterable {
 	static public function where<T, C:Iterable<T>>(linq:LINQ<T,C>, clause:T->Int->Bool):LINQ<T,Array<T>> {
 		var i = 0;
 		var newArray = new Array<T>();
