@@ -31,3 +31,4 @@ typedef LINQtoIterable = hxLINQ.iterable.LINQtoIterable;
 typedef OrderedLINQtoIterable = hxLINQ.iterable.OrderedLINQtoIterable;
 
 typedef LINQtoArray = hxLINQ.iterable.LINQtoArray;
+typedef OrderedLINQtoArray = hxLINQ.iterable.OrderedLINQtoArray;
