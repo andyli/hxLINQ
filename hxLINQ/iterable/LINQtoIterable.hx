@@ -56,7 +56,7 @@ class LINQtoIterable {
 		
 		for (item in linq.items) {
 			var f = clause(item);
-			var group = where(new LINQ(arrays), function(g:Grouping<F,T>, i:Int) return g.key == f).first();
+			var group = new LINQ(arrays).where(function(g:Grouping<F,T>, i:Int) return g.key == f).first();
 			if (group == null) {	
 				group = new Grouping<F,T>(f);
 				arrays.push(group);
@@ -90,7 +90,7 @@ class LINQtoIterable {
 		var i = 0;
 		for (a in linq.items) {
 			var ka = outerKeySelector(a);
-			result.push(resultSelector(a, where(new LINQ(inner), function(b,i2) return comparer(ka,i,innerKeySelector(b),i2)).asIterable()));
+			result.push(resultSelector(a, new LINQ(inner).where(function(b,i2) return comparer(ka,i,innerKeySelector(b),i2)).asIterable()));
 			++i;
 		}
 		return new LINQ(result);
@@ -422,7 +422,7 @@ class LINQtoIterable {
 		return hash;
 	}
 	
-	static public function asIterable<T, C:Iterable<T>>(linq:LINQ<T,C>):Iterable<T> {
+	inline static public function asIterable<T>(linq:LINQ<T,Dynamic>):Iterable<T> {
 		return linq.items;
 	}
 }

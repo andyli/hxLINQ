@@ -34,4 +34,61 @@ class LINQtoArray {
 			linq.where(clause).count();
 		}
 	}
+
+	static public function reverse<T>(linq:LINQ<T,Array<T>>):LINQ<T,Array<T>> {
+		var tempAry = linq.items.copy();
+		tempAry.reverse();
+		return new LINQ(tempAry);
+	}
+
+	static public function any<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):Bool {
+		if (clause == null) return linq.items.length > 0;
+		
+		var i = 0;
+		for (item in linq.items) {
+			if (clause(item,i++)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	inline static public function first<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):T {
+		return if (clause != null) {
+			linq.where(clause).first();
+		} else {
+			linq.items[0];
+		}
+	}
+
+	inline static public function last<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):T {
+		return if (clause != null) {
+			linq.where(clause).last();
+		} else {
+			if (linq.any()) {
+				linq.items[linq.items.length-1];
+			} else {
+				null;
+			}
+		}
+	}
+
+	inline static public function elementAt<T>(linq:LINQ<T,Array<T>>, i:Int):T {
+		return linq.items[i];
+	}
+
+	inline static public function concat<T>(linq:LINQ<T,Array<T>>, items:Iterable<T>):LINQ<T,Array<T>> {
+		return new LINQ(linq.items.concat(new LINQ(items).toArray()));
+	}
+
+	inline static public function elementAtOrDefault<T>(linq:LINQ<T,Array<T>>, i:Int):T {
+		return if (i < linq.items.length)
+			linq.items[i];
+		else
+			linq.defaultValue;
+	}
+	
+	inline static public function toArray<T>(linq:LINQ<T,Array<T>>):Array<T> {
+		return linq.items.copy();
+	}
 }
