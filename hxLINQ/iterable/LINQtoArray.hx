@@ -27,11 +27,11 @@ class LINQtoArray {
 		return new OrderedLINQ(tempArray, [sortFn]);
 	}
 	
-	static public function count<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):Int {
+	static public function count<T>(linq:LINQ<T,Array<T>>, ?clause:T->Bool):Int {
 		return if (clause == null) {
 			linq.items.length;
 		} else {
-			linq.where(clause).count();
+			linq.where(function(e,i) return clause(e)).count();
 		}
 	}
 

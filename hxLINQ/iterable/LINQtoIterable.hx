@@ -101,13 +101,13 @@ class LINQtoIterable {
 		return new LINQ(r);
 	}
 
-	static public function count<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):Int {
+	static public function count<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):Int {
 		if (clause == null) {
 			var i = 0;
 			for (_item in linq.items) ++i;
 			return i;
 		} else {
-			return linq.where(clause).count();
+			return linq.where(function(e,i) return clause(e)).count();
 		}
 	}
 

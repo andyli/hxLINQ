@@ -119,12 +119,8 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(10,new LINQ(people).count());
 
 		var r = new LINQ(people)
-					.count(function (p:Person, i:Int) return p.firstName == "Chris");
+					.count(function (p:Person) return p.firstName == "Chris");
 		this.assertEquals(2,r);
-
-		var r = new LINQ(people)
-				.count(function (p:Person, i:Int) return p.firstName == "Chris" && i == 4);
-		this.assertEquals(0,r);
 	}
 
 	public function testDistinct():Void {
@@ -420,7 +416,7 @@ class Test extends haxe.unit.TestCase{
 		
 		this.assertEquals("Daisy",query.elementAt(0).pet);
 		
-		this.assertEquals(2,query.count(function(pair,i) return pair.ownerName == "Adams, Terry"));
+		this.assertEquals(2,query.count(function(pair) return pair.ownerName == "Adams, Terry"));
 	}
 
 	public function testGroupJoin():Void {
