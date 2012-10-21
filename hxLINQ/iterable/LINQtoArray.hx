@@ -41,29 +41,28 @@ class LINQtoArray {
 		return new LINQ(tempAry);
 	}
 
-	static public function any<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):Bool {
+	static public function any<T>(linq:LINQ<T,Array<T>>, ?clause:T->Bool):Bool {
 		if (clause == null) return linq.items.length > 0;
 		
-		var i = 0;
 		for (item in linq.items) {
-			if (clause(item,i++)) {
+			if (clause(item)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	inline static public function first<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):T {
+	inline static public function first<T>(linq:LINQ<T,Array<T>>, ?clause:T->Bool):T {
 		return if (clause != null) {
-			linq.where(clause).first();
+			linq.where(function(e,i) return clause(e)).first();
 		} else {
 			linq.items[0];
 		}
 	}
 
-	inline static public function last<T>(linq:LINQ<T,Array<T>>, ?clause:T->Int->Bool):T {
+	inline static public function last<T>(linq:LINQ<T,Array<T>>, ?clause:T->Bool):T {
 		return if (clause != null) {
-			linq.where(clause).last();
+			linq.where(function(e,i) return clause(e)).last();
 		} else {
 			if (linq.any()) {
 				linq.items[linq.items.length-1];

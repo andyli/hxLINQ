@@ -67,31 +67,26 @@ class LINQtoIterable {
 		return new LINQ(arrays);
 	}
 	
-	static public function join<T, C:Iterable<T>, T2, K, R>(linq:LINQ<T,C>, inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->T2->R, ?comparer:K->Int->K->Int->Bool):LINQ<R,Array<R>> {
-		if (comparer == null) comparer = function(ka,_,kb,_) return ka == kb;
+	static public function join<T, C:Iterable<T>, T2, K, R>(linq:LINQ<T,C>, inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->T2->R, ?comparer:K->K->Bool):LINQ<R,Array<R>> {
+		if (comparer == null) comparer = function(ka,kb) return ka == kb;
 		var result = new Array<R>();
-		var i = 0;
 		for (a in linq.items) {
 			var ka = outerKeySelector(a);
-			var i2 = 0;
 			for (b in inner) {
-				if (comparer(ka,i,innerKeySelector(b),i2++)) {
+				if (comparer(ka,innerKeySelector(b))) {
 					result.push(resultSelector(a, b));
 				}
 			}
-			++i;
 		}
 		return new LINQ(result);
 	}
 	
-	static public function groupJoin<T, C:Iterable<T>, T2, K, R>(linq:LINQ<T,C>, inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->Iterable<T2>->R, ?comparer:K->Int->K->Int->Bool):LINQ<R,Array<R>> {
-		if (comparer == null) comparer = function(ka,_,kb,_) return ka == kb;
+	static public function groupJoin<T, C:Iterable<T>, T2, K, R>(linq:LINQ<T,C>, inner:Iterable<T2>, outerKeySelector:T->K, innerKeySelector:T2->K, resultSelector:T->Iterable<T2>->R, ?comparer:K->K->Bool):LINQ<R,Array<R>> {
+		if (comparer == null) comparer = function(ka,kb) return ka == kb;
 		var result = new Array<R>();
-		var i = 0;
 		for (a in linq.items) {
 			var ka = outerKeySelector(a);
-			result.push(resultSelector(a, new LINQ(inner).where(function(b,i2) return comparer(ka,i,innerKeySelector(b),i2)).asIterable()));
-			++i;
+			result.push(resultSelector(a, new LINQ(inner).where(function(b,i2) return comparer(ka,innerKeySelector(b))).asIterable()));
 		}
 		return new LINQ(result);
 	}
@@ -152,24 +147,21 @@ class LINQtoIterable {
 		return linq.sum(clause)/linq.count();
 	}
 
-	static public function distinct<T, C:Iterable<T>>(linq:LINQ<T,C>, ?comparer:T->Int->T->Int->Bool):LINQ<T,Array<T>> {
-		if (comparer == null) comparer = function(a,_,b,_) return a == b;
+	static public function distinct<T, C:Iterable<T>>(linq:LINQ<T,C>, ?comparer:T->T->Bool):LINQ<T,Array<T>> {
+		if (comparer == null) comparer = function(a,b) return a == b;
 		var retVal = new Array<T>();
-		var i = 0;
 		for (item in linq.items) {
-			if (!new LINQ(retVal).any(function(r,i2) return comparer(r,i,item,i2))) {
+			if (!new LINQ(retVal).any(function(r) return comparer(r,item))) {
 				retVal.push(item);
 			}
-			++i;
 		}
 		return new LINQ(retVal);
 	}
 	
-	static public function contains<T, C:Iterable<T>>(linq:LINQ<T,C>, value:T, ?comparer:T->T->Int->Bool):Bool {
-		if (comparer == null) comparer = function(a,b,i) return a == b;
-		var i = 0;
+	static public function contains<T, C:Iterable<T>>(linq:LINQ<T,C>, value:T, ?comparer:T->T->Bool):Bool {
+		if (comparer == null) comparer = function(a,b) return a == b;
 		for (item in linq.items) {
-			if (comparer(item, value, i++)) return true;
+			if (comparer(item, value)) return true;
 		}
 		return false;
 	}
@@ -178,22 +170,20 @@ class LINQtoIterable {
 		return !linq.items.iterator().hasNext();
 	}
 
-	static public function any<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):Bool {
+	static public function any<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):Bool {
 		if (clause == null) return linq.items.iterator().hasNext();
 		
-		var i = 0;
 		for (item in linq.items) {
-			if (clause(item,i++)) {
+			if (clause(item)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	static public function all<T, C:Iterable<T>>(linq:LINQ<T,C>, clause:T->Int->Bool):Bool {
-		var i = 0;
+	static public function all<T, C:Iterable<T>>(linq:LINQ<T,C>, clause:T->Bool):Bool {
 		for (item in linq.items) {
-			if (!clause(item,i++)) {
+			if (!clause(item)) {
 				return false;
 			}
 		}
@@ -206,24 +196,24 @@ class LINQtoIterable {
 		return new LINQ(tempAry);
 	}
 	
-	static public function single<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
+	static public function single<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):T {
 		return if (clause == null)
 			linq.count() == 1 ? linq.first() : throw "There is " + linq.count() + " items.";
 		else 
-			linq.where(clause).single();
+			linq.where(function(e,i) return clause(e)).single();
 	}
 
-	static public function first<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
+	static public function first<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):T {
 		return if (clause != null) {
-			linq.where(clause).first();
+			linq.where(function(e,i) return clause(e)).first();
 		} else {
 			linq.items.iterator().next();
 		}
 	}
 
-	static public function last<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
+	static public function last<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):T {
 		return if (clause != null) {
-			linq.where(clause).last();
+			linq.where(function(e,i) return clause(e)).last();
 		} else {
 			if (linq.any()) {
 				linq.toArray().pop();
@@ -241,19 +231,18 @@ class LINQtoIterable {
 		return null;
 	}
 
-	static public function sequenceEqual<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?comparer:T->T2->Int->Bool):Bool {
+	static public function sequenceEqual<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?comparer:T->T2->Bool):Bool {
 		if (comparer == null){
-			comparer = function (item, item2, index) { return untyped item == item2; };
+			comparer = function (item, item2) { return untyped item == item2; };
 		}
 		
 		var	it1 = linq.items.iterator(),
-			it2 = items.iterator(),
-			i = 0;
+			it2 = items.iterator();
 		while (it1.hasNext() && it2.hasNext()) {
 			var a = it1.next();
 			var b = it2.next();
 			
-			if (!comparer(a, b, i++)) return false;
+			if (!comparer(a, b)) return false;
 		}
 		
 		return !(it1.hasNext() || it2.hasNext());
@@ -295,53 +284,46 @@ class LINQtoIterable {
 		return new LINQ(newArray);
 	}
 
-	static public function intersect<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
+	static public function intersect<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?clause:T->T2->Bool):LINQ<T,Array<T>> {
 		if (clause == null){
-			clause = function (item:T, index:Int, item2:Dynamic, index2:Int) { return item == item2; };
+			clause = function (item:T, item2:Dynamic) { return item == item2; };
 		}
 
 		var result = new Array<T>();
-		var ia = 0;
 		for (a in linq.items) {
-			var ib = 0;
 			for (b in items) {
-				if (clause(a,ia,b,ib++)) {
+				if (clause(a,b)) {
 					result.push(a);
 				}
 			}
-			++ia;
 		}
 		return new LINQ(result);
 	}
 
-	static public function union<T, C:Iterable<T>>(linq:LINQ<T,C>, items:Iterable<T>, ?comparer:T->Int->T->Int->Bool):LINQ<T,Array<T>> {
+	static public function union<T, C:Iterable<T>>(linq:LINQ<T,C>, items:Iterable<T>, ?comparer:T->T->Bool):LINQ<T,Array<T>> {
 		if (comparer == null){
-			comparer = function (item:T, index:Int, item2:T, index2:Int) { return item == item2; };
+			comparer = function (item:T, item2:T) { return item == item2; };
 		}
 		
 		var retVal = linq.toArray();
-		var i2 = 0;
 		for (b in items) {
-			if (!linq.any(function(a,i) return comparer(a,i,b,i2))) {
+			if (!linq.any(function(a) return comparer(a,b))) {
 				retVal.push(b);
 			}
-			++i2;
 		}
 		return new LINQ(retVal);
 	}
 	
-	static public function except<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?clause:T->Int->T2->Int->Bool):LINQ<T,Array<T>> {
+	static public function except<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, items:Iterable<T2>, ?clause:T->T2->Bool):LINQ<T,Array<T>> {
 		if (clause == null){
-			clause = function (item:T, index:Int, item2:Dynamic, index2:Int) { return item == item2; };
+			clause = function (item:T, item2:Dynamic) { return item == item2; };
 		}
 
 		var result = new Array<T>();
 		var remove = new LINQ(items);
-		var ia = 0;
 		for (a in linq.items) {
-			if (!remove.any(function(b,ib) return clause(a,ia,b,ib)))
+			if (!remove.any(function(b) return clause(a,b)))
 				result.push(a);
-			++ia;
 		}
 		return new LINQ(result);
 	}
@@ -360,15 +342,15 @@ class LINQtoIterable {
 		return linq.defaultValue;
 	}
 	
-	static public function singleOrDefault<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
+	static public function singleOrDefault<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):T {
 		return linq.any(clause) ? linq.single(clause) : linq.defaultValue;
 	}
 
-	static public function firstOrDefault<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
+	static public function firstOrDefault<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):T {
 		return linq.any(clause) ? linq.first(clause) : linq.defaultValue;
 	}
 
-	static public function lastOrDefault<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Int->Bool):T {
+	static public function lastOrDefault<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Bool):T {
 		return linq.any(clause) ? linq.last(clause) : linq.defaultValue;
 	}
 	

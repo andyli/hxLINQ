@@ -4,13 +4,11 @@ typedef Person = { id:Int , firstName:String, lastName:String, bookIds:Array<Int
 
 class Test extends haxe.unit.TestCase{
 	public function testWhere():Void {
-		var r;
-		
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.where(function(p:Person, i:Int) return p.firstName == "Chris");
 		this.assertEquals(2,r.count());
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.where(function(p:Person, i:Int) return p.firstName == "Chris" && i == 0);
 		this.assertEquals(1,r.count());
 	}
@@ -82,7 +80,7 @@ class Test extends haxe.unit.TestCase{
 					.min(function (p:Person) return p.id);
 		this.assertEquals(1, cast r);
 
-		r = new LINQ([235,3635,585,-1,-1.1,1000])
+		var r = new LINQ([235,3635,585,-1,-1.1,1000])
 				.min();
 		this.assertEquals(-1.1,r);
 	}
@@ -92,7 +90,7 @@ class Test extends haxe.unit.TestCase{
 					.max(function (p:Person) return p.id);
 		this.assertEquals(10, cast r);
 
-		r = new LINQ([235,3635,585,-1,-1.1,1000])
+		var r = new LINQ([235,3635,585,-1,-1.1,1000])
 				.max();
 		this.assertEquals(3635,cast r);
 	}
@@ -102,7 +100,7 @@ class Test extends haxe.unit.TestCase{
 					.sum(function (p:Person) return p.id);
 		this.assertEquals(55.0, r);
 
-		r = new LINQ([235,3635,585,-1,-1.1,1000])
+		var r = new LINQ([235,3635,585,-1,-1.1,1000])
 				.sum();
 		this.assertEquals(235+3635+585-1-1.1+1000,r);
 	}
@@ -112,7 +110,7 @@ class Test extends haxe.unit.TestCase{
 					.average(function (p:Person) return p.id);
 		this.assertEquals(5.5, r);
 
-		r = new LINQ([235,3635,585,-1,-1.1,1000])
+		var r = new LINQ([235,3635,585,-1,-1.1,1000])
 				.average();
 		this.assertEquals((235+3635+585-1-1.1+1000)/6,r);
 	}
@@ -124,14 +122,14 @@ class Test extends haxe.unit.TestCase{
 					.count(function (p:Person, i:Int) return p.firstName == "Chris");
 		this.assertEquals(2,r);
 
-		r = new LINQ(people)
+		var r = new LINQ(people)
 				.count(function (p:Person, i:Int) return p.firstName == "Chris" && i == 4);
 		this.assertEquals(0,r);
 	}
 
 	public function testDistinct():Void {
 		var r = new LINQ(people)
-				.distinct(function(p:Person,_,p2:Person,_) return p.firstName == p2.firstName);
+				.distinct(function(p:Person,p2:Person) return p.firstName == p2.firstName);
 		this.assertEquals(8,r.count());
 		
 		var r = new LINQ(people)
@@ -154,12 +152,8 @@ class Test extends haxe.unit.TestCase{
 		this.assertFalse(r);
 		
 		var r = new LINQ(people)
-				.any(function(p:Person, i:Int) return p.firstName == "Chris");
+				.any(function(p:Person) return p.firstName == "Chris");
 		this.assertTrue(r);
-
-		var r = new LINQ(people)
-				.any(function(p:Person, i:Int) return p.firstName == "Chris" && i == 4);
-		this.assertFalse(r);
 	}
 
 	public function testEmpty():Void {
@@ -185,15 +179,13 @@ class Test extends haxe.unit.TestCase{
 	}
 
 	public function testAll():Void {
-		var r;
-
-		r = new LINQ(people)
-				.all(function(p:Person, i:Int) return p.firstName == "Chris");
+		var r = new LINQ(people)
+				.all(function(p:Person) return p.firstName == "Chris");
 		this.assertFalse(r);
-
-		r = new LINQ(people)
-				.all(function(p:Person, i:Int) return p.firstName == "Chris" && i == 0);
-		this.assertFalse(r);
+		
+		var r = new LINQ([1, 1, 1])
+				.all(function(n) return n == 1);
+		this.assertTrue(r);
 	}
 
 	public function testReverse():Void {
@@ -216,7 +208,7 @@ class Test extends haxe.unit.TestCase{
 		}
 		this.assertTrue(error);
 		
-		var r = new LINQ(people).single(function(p,i) return p.firstName == "Josh");
+		var r = new LINQ(people).single(function(p) return p.firstName == "Josh");
 		this.assertEquals("Josh", r.firstName);
 	}
 	
@@ -235,34 +227,22 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ([]).singleOrDefault();
 		this.assertEquals(null, r);
 		
-		var r = new LINQ(people).singleOrDefault(function(p,i) return p.firstName == "ABC");
+		var r = new LINQ(people).singleOrDefault(function(p) return p.firstName == "ABC");
 		this.assertEquals(null, r);
 	}
 
 	public function testFirst():Void {
 		var r = new LINQ(people)
-				.first(function(p:Person,i:Int) return p.firstName == "Chris");
-		this.assertEquals("Chris",r.firstName);
-		this.assertEquals(1,r.id);
-
-		var r = new LINQ(people)
-				.first(function(p:Person,i:Int) return p.firstName == "Chris" && i == 0);
+				.first(function(p:Person) return p.firstName == "Chris");
 		this.assertEquals("Chris",r.firstName);
 		this.assertEquals(1,r.id);
 	}
 
 	public function testLast():Void {
-		var r;
-
-		r = new LINQ(people)
-				.last(function(p:Person,i:Int) return p.firstName == "Chris");
+		var r = new LINQ(people)
+				.last(function(p:Person) return p.firstName == "Chris");
 		this.assertEquals("Chris",r.firstName);
 		this.assertEquals(8,r.id);
-
-		r = new LINQ(people)
-				.last(function(p:Person,i:Int) return p.firstName == "Chris" && i == 0);
-		this.assertEquals("Chris",r.firstName);
-		this.assertEquals(1,r.id);
 	}
 
 	public function testElementAt():Void {
@@ -309,7 +289,7 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(2,sample.count());
 
 		var sample2 = new LINQ(people)
-			.intersect(nameList2, function(item:Person, index:Int, item2:String, index2:Int) return item.firstName == item2);
+			.intersect(nameList2, function(item:Person, item2:String) return item.firstName == item2);
 		this.assertEquals(4,sample2.count());
 	}
 	
@@ -319,7 +299,7 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ(people)
 			.except([e]);
 		this.assertEquals(people.length - 1, r.count());
-		this.assertFalse(r.any(function(p,i) return p == e));
+		this.assertFalse(r.any(function(p) return p == e));
 		
 		var r = new LINQ(people)
 			.except([]);
