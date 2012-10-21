@@ -30,5 +30,7 @@ class OrderedLINQ<T,C:Iterable<T>> extends LINQ<T,C> {
 typedef LINQtoIterable = hxLINQ.iterable.LINQtoIterable;
 typedef OrderedLINQtoIterable = hxLINQ.iterable.OrderedLINQtoIterable;
 
+typedef LINQtoIterator = hxLINQ.iterable.LINQtoIterator;
+
 typedef LINQtoArray = hxLINQ.iterable.LINQtoArray;
 typedef OrderedLINQtoArray = hxLINQ.iterable.OrderedLINQtoArray;

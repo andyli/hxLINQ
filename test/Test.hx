@@ -470,6 +470,14 @@ class Test extends haxe.unit.TestCase{
 		this.assertEquals(10,r.count());
 		this.assertEquals("9,8,1,7,3,4,6,10,2,5",r.toArray().join(","));
 	}
+	
+	public function testIterator():Void {
+		var hash = new Hash<Int>();
+		for (i in 65...70) hash.set(String.fromCharCode(i), i);
+		
+		var r = hash.keys().linq();
+		this.assertEquals(5, r.count());
+	}
 
 	static public var people:Array<Person> = [
 		{ id: 1, firstName: "Chris", lastName: "Pearson", bookIds: [1001, 1002, 1003] },
