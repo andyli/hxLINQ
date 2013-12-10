@@ -3,6 +3,7 @@ using hxLINQ.LINQ;
 
 typedef Person = { id:Int , firstName:String, lastName:String, bookIds:Array<Int> };
 
+@:expose
 class Test extends haxe.unit.TestCase{
 	public function testWhere():Void {
 		var r = new LINQ(people)
@@ -493,9 +494,22 @@ class Test extends haxe.unit.TestCase{
 		{ id: 10, firstName: "Kate", lastName: "Pinkerton", bookIds: [4001, 3002, 2003] }
 	];
 
+	public static var success:Bool;
+
 	public static function main():Void {
+		#if js
+		var buf = new StringBuf();
+		haxe.unit.TestRunner.print = buf.add;
+		#end
+
 		var runner = new haxe.unit.TestRunner();
 		runner.add(new Test());
-		runner.run();
+		success = runner.run();
+		
+		#if sys
+		Sys.exit(success ? 0 : 1);
+		#elseif js
+		untyped __js__("console.log")(buf.toString());
+		#end
 	}
 }

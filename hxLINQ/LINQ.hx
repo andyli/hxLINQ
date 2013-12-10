@@ -6,7 +6,7 @@ class LINQ<T,C:Iterable<T>> {
 		return new LINQ(iterable);
 	}
 	
-	public var items(default, null):C;
+	public var items(default, null):#if js Iterable<T> #else C #end;
 	public var defaultValue(default, null):T;
 	
 	public function new(items:C):Void {

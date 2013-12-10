@@ -4,7 +4,7 @@ using hxLINQ.LINQ;
 
 class OrderedLINQtoArray {
 	static public function thenBy<T, T2>(linq:OrderedLINQ<T,Array<T>>, clause:T->T2):OrderedLINQ<T,Array<T>> {
-		var tempArray:Array<T> = linq.items.copy();
+		var tempArray = #if js cast(linq.items,Array<Dynamic>).copy() #else linq.items.copy() #end;
 		var _sortFns = linq.sortFns.concat([
 			function(a, b) {
 				var x = clause(a);
@@ -23,11 +23,11 @@ class OrderedLINQtoArray {
 			return r;
 		});
 		
-		return new OrderedLINQ(tempArray, _sortFns);
+		return new OrderedLINQ(#if js untyped #end tempArray, _sortFns);
 	}
 
 	static public function thenByDescending<T, T2>(linq:OrderedLINQ<T,Array<T>>, clause:T->T2):OrderedLINQ<T,Array<T>> {
-		var tempArray:Array<T> = linq.items.copy();
+		var tempArray = #if js cast(linq.items,Array<Dynamic>).copy() #else linq.items.copy() #end;
 		var _sortFns = linq.sortFns.concat([
 			function(a, b) {
 				var x = clause(b);
@@ -46,6 +46,6 @@ class OrderedLINQtoArray {
 			return r;
 		});
 
-		return new OrderedLINQ(tempArray, _sortFns);
+		return new OrderedLINQ(#if js untyped #end tempArray, _sortFns);
 	}
 }

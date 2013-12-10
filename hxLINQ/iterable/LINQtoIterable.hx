@@ -330,7 +330,7 @@ class LINQtoIterable {
 	}
 
 	static public function defaultIfEmpty<T, C:Iterable<T>>(linq:LINQ<T,C>, ?defaultValue:T):LINQ<T,C> {
-		var r = new LINQ(linq.items);
+		var r = new LINQ(#if js untyped #end linq.items);
 		r.defaultValue = defaultValue;
 		return r;
 	}
