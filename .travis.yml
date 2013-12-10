@@ -13,6 +13,6 @@ before_script:
 script:
   - haxe -main Test -cp test -debug --interp
   - haxe -main Test -cp test -debug -neko Test.n && neko Test.n
-  - haxe -main Test -cp test -debug -js Test.js && node -e "var Test = require('./Test.js').Test; Test.main(); process.exit(Test.success ? 0 : 1);"
+  - haxe -main Test -cp test -debug -js Test.js && node Test.js
   - haxe -main Test -cp test -debug -php bin && php bin/index.php
   - haxe -main Test -cp test -debug -cpp bin -dce full && ./bin/Test-debug

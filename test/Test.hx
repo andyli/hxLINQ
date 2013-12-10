@@ -198,13 +198,12 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ([1]).single();
 		this.assertEquals(1, r);
 		
-		var error = try {
+		try {
 			new LINQ(people).single();
-			false;
+			this.assertTrue(false);
 		} catch (e:Dynamic) {
-			true;
+			this.assertTrue(true);
 		}
-		this.assertTrue(error);
 		
 		var r = new LINQ(people).single(function(p) return p.firstName == "Josh");
 		this.assertEquals("Josh", r.firstName);
@@ -214,13 +213,12 @@ class Test extends haxe.unit.TestCase{
 		var r = new LINQ([1]).singleOrDefault();
 		this.assertEquals(1, r);
 		
-		var error = try {
+		try {
 			new LINQ(people).singleOrDefault();
-			false;
+			this.assertTrue(false);
 		} catch (e:Dynamic) {
-			true;
+			this.assertTrue(true);
 		}
-		this.assertTrue(error);
 		
 		var r = new LINQ([]).singleOrDefault();
 		this.assertEquals(null, r);
@@ -505,11 +503,12 @@ class Test extends haxe.unit.TestCase{
 		var runner = new haxe.unit.TestRunner();
 		runner.add(new Test());
 		success = runner.run();
-		
+
 		#if sys
 		Sys.exit(success ? 0 : 1);
 		#elseif js
 		untyped __js__("console.log")(buf.toString());
+		if (untyped __js__("process") != null) (untyped __js__("process")).exit(success ? 0 : 1);
 		#end
 	}
 }
