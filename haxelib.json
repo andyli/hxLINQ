@@ -1,0 +1,10 @@
+{
+  "name": "hxLINQ",
+  "url": "http://github.com/andyli/hxLINQ",
+  "license": "MIT",
+  "tags": ["cross"],
+  "description": "Haxe implementation of LINQ.",
+  "version": "1.2.0",
+  "releasenote": "Haxe 3 compatibility.",
+  "contributors": ["andyli"]
+}

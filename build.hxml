@@ -1,5 +1,6 @@
 -main Test
 -cpp bin
 -cp test
+-dce full
 
 -cmd ./bin/Test

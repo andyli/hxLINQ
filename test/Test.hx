@@ -1,3 +1,4 @@
+import haxe.ds.*;
 using hxLINQ.LINQ;
 
 typedef Person = { id:Int , firstName:String, lastName:String, bookIds:Array<Int> };
@@ -472,7 +473,7 @@ class Test extends haxe.unit.TestCase{
 	}
 	
 	public function testIterator():Void {
-		var hash = new Hash<Int>();
+		var hash = new StringMap();
 		for (i in 65...70) hash.set(String.fromCharCode(i), i);
 		
 		var r = hash.keys().linq();

@@ -1,5 +1,6 @@
 package hxLINQ.iterable;
 
+import haxe.ds.*;
 using hxLINQ.LINQ;
 
 class LINQtoIterable {
@@ -379,25 +380,40 @@ class LINQtoIterable {
 		}
 		return list;
 	}
+
+	@:noCompletion
+	inline static public function toFastList<T, C:Iterable<T>>(linq:LINQ<T,C>):GenericStack<T> {
+		return toGenericStack(linq);
+	}
 	
-	static public function toFastList<T, C:Iterable<T>>(linq:LINQ<T,C>):haxe.FastList<T> {
-		var list = new haxe.FastList<T>();
+	static public function toGenericStack<T, C:Iterable<T>>(linq:LINQ<T,C>):GenericStack<T> {
+		var list = new GenericStack<T>();
 		for (_item in linq.items){
 			list.add(_item);
 		}
 		return list;
 	}
 
-	static public function toHash<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->String):Hash<T> {
-		var hash = new Hash<T>();
+	@:noCompletion
+	inline static public function toHash<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->String):StringMap<T> {
+		return toStringMap(linq, keySelector);
+	}
+
+	static public function toStringMap<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->String):StringMap<T> {
+		var hash = new StringMap<T>();
 		for (item in linq.items) {
 			hash.set(keySelector(item), item);
 		}
 		return hash;
 	}
 
-	static public function toIntHash<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->Int):IntHash<T> {
-		var hash = new IntHash<T>();
+	@:noCompletion
+	inline static public function toIntHash<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->Int):IntMap<T> {
+		return toIntMap(linq, keySelector);
+	}
+
+	static public function toIntMap<T, C:Iterable<T>>(linq:LINQ<T,C>, keySelector:T->Int):IntMap<T> {
+		var hash = new IntMap<T>();
 		for (item in linq.items) {
 			hash.set(keySelector(item), item);
 		}

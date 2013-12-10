@@ -1,6 +1,0 @@
-<project name="hxLINQ" url="http://github.com/andyli/hxLINQ" license="BSD">
-    <user name="andyli"/>
-    <tag v="cross"/>
-    <description>HaXe port of the LINQ to JavaScript (JSLINQ) Project. Tested on Flash/JS/PHP/Neko/C++ targets.</description>
-    <version name="1.1">Improved orderBy. Added aggregate functions.</version>
-</project>
