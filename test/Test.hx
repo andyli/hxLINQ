@@ -522,37 +522,87 @@ class Test extends haxe.unit.TestCase{
 
 				var tags = [];
 				if (Sys.getEnv("TRAVIS") != null) tags.push("TravisCI");
-				
-				var caps = {
-					"tunnel-identifier": Sys.getEnv("TRAVIS_JOB_NUMBER"),
-					"build": Sys.getEnv("TRAVIS_BUILD_NUMBER"),
-					"tags": tags,
-					"browserName": "internet explorer",
-					"platform": "Windows XP",
-					"version": "8"
-				};
 
-				js.Node.console.log('========================================================');
-				js.Node.console.log('${caps.browserName} ${caps.version} on ${caps.platform}:');
-				browser.init(caps, function() {
-					browser.eval(sys.io.File.getContent("Test.js"), function(err, re) {
-						if (err != null) throw err;
-						browser.text("body", function(err, re) {
-							if (err != null) throw err;
-							js.Node.console.log(re);
-							browser.eval("Test.success", function(err, re) {
+				var browsers = [
+					{
+						"browserName": "internet explorer",
+						"platform": "Windows XP",
+						"version": "6"
+					},
+					{
+						"browserName": "internet explorer",
+						"platform": "Windows XP",
+						"version": "7"
+					},
+					{
+						"browserName": "internet explorer",
+						"platform": "Windows XP",
+						"version": "8"
+					},
+					{
+						"browserName": "chrome",
+						"platform": "Windows XP",
+						"version": "31"
+					},
+					{
+						"browserName": "firefox",
+						"platform": "Windows XP",
+						"version": "25"
+					},
+					{
+						"browserName": "safari",
+						"platform": "OS X 10.6",
+						"version": "5"
+					},
+					{
+						"browserName": "safari",
+						"platform": "OS X 10.8",
+						"version": "6"
+					},
+					{
+						"browserName": "iphone",
+						"platform": "OS X 10.8",
+						"version": "6.1",
+						"device-orientation": "portrait"
+					}
+				];
+
+				function testBrowsers(browsers:Array<Dynamic>) {
+					if (browsers.length == 0) {
+						Sys.exit(success ? 0 : 1);
+					} else {
+						var caps = browsers.shift();
+						Reflect.setField(caps, "tunnel-identifier", Sys.getEnv("TRAVIS_JOB_NUMBER"));
+						Reflect.setField(caps, "name", "hxLINQ");
+						Reflect.setField(caps, "build", Sys.getEnv("TRAVIS_BUILD_NUMBER"));
+						Reflect.setField(caps, "tags", tags);
+
+						js.Node.console.log('========================================================');
+						js.Node.console.log('${caps.browserName} ${caps.version} on ${caps.platform}:');
+						browser.init(caps, function() {
+							browser.eval(sys.io.File.getContent("Test.js"), function(err, re) {
 								if (err != null) throw err;
-								success = re;
-								browser.quit(function(err) {
+								browser.text("body", function(err, re) {
 									if (err != null) throw err;
-									Sys.exit(success ? 0 : 1);
+									js.Node.console.log(re);
+									browser.eval("Test.success", function(err, re) {
+										if (err != null) throw err;
+										success = success && re;
+										browser.sauceJobUpdate({ passed: re },function(err) {
+											browser.quit(function(err) {
+												if (err != null) throw err;
+												testBrowsers(browsers);
+											});
+										});
+									});
 								});
 							});
 						});
-					});
-				});
+					}
+				}
+				testBrowsers(browsers);
 			#else
-				js.Browser.document.body.innerText = buf.toString();
+				js.Browser.document.body.innerHTML = StringTools.replace(buf.toString(), "\n", "<br>\n");
 			#end
 		#end
 	}
