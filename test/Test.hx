@@ -493,9 +493,6 @@ class Test extends haxe.unit.TestCase{
 	];
 
 	public static var success:Bool;
-	#if js
-	public static var result:String;
-	#end
 
 	public static function main():Void {
 		#if js
@@ -540,7 +537,7 @@ class Test extends haxe.unit.TestCase{
 				browser.init(caps, function() {
 					browser.eval(sys.io.File.getContent("Test.js"), function(err, re) {
 						if (err != null) throw err;
-						browser.eval("Test.result", function(err, re) {
+						browser.text("body", function(err, re) {
 							if (err != null) throw err;
 							js.Node.console.log(re);
 							browser.eval("Test.success", function(err, re) {
@@ -555,7 +552,7 @@ class Test extends haxe.unit.TestCase{
 					});
 				});
 			#else
-				js.Browser.document.body.innerText = result = buf.toString();
+				js.Browser.document.body.innerText = buf.toString();
 			#end
 		#end
 	}
