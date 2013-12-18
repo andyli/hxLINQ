@@ -21,6 +21,6 @@ before_script:
 script:
   - haxe -main Test -cp test -debug --interp
   - haxe -main Test -cp test -debug -neko Test.n && neko Test.n
-  - haxe -main Test -cp test -js Test.js --next -main Test -cp test -debug -js Test-node.js -lib nodejs && node Test-node.js
+  - haxe -main Test -cp test -debug -js Test.js --next -main Test -cp test -debug -js Test-node.js -lib nodejs && node Test-node.js
   - haxe -main Test -cp test -debug -php bin && php bin/index.php
   - haxe -main Test -cp test -debug -cpp bin -dce full && ./bin/Test-debug

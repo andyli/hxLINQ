@@ -580,7 +580,7 @@ class Test extends haxe.unit.TestCase{
 						js.Node.console.log('========================================================');
 						js.Node.console.log('${caps.browserName} ${caps.version} on ${caps.platform}:');
 						browser.init(caps, function() {
-							browser.eval(sys.io.File.getContent("Test.js"), function(err, re) {
+							browser.eval(sys.io.File.getContent("Test.js") + "\n", function(err, re) {
 								if (err != null) throw err;
 								browser.text("body", function(err, re) {
 									if (err != null) throw err;
