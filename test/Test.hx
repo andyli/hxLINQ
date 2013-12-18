@@ -493,6 +493,9 @@ class Test extends haxe.unit.TestCase{
 	];
 
 	public static var success:Bool;
+	#if js
+	public static var result:String;
+	#end
 
 	public static function main():Void {
 		#if js
@@ -505,10 +508,55 @@ class Test extends haxe.unit.TestCase{
 		success = runner.run();
 
 		#if sys
-		Sys.exit(success ? 0 : 1);
+			Sys.exit(success ? 0 : 1);
 		#elseif js
-		untyped __js__("console.log")(buf.toString());
-		if (untyped __js__("process") != null) (untyped __js__("process")).exit(success ? 0 : 1);
+			#if nodejs
+				js.Node.console.log('========================================================');
+				js.Node.console.log("NodeJS:");
+				js.Node.console.log(buf.toString());
+
+				var webdriver:Dynamic = js.Node.require("wd");
+				var browser:Dynamic = webdriver.remote(
+					"localhost",
+					4445,
+					Sys.getEnv("SAUCE_USERNAME"), 
+					Sys.getEnv("SAUCE_ACCESS_KEY")
+				);
+
+				var tags = [];
+				if (Sys.getEnv("TRAVIS") != null) tags.push("TravisCI");
+				
+				var caps = {
+					"tunnel-identifier": Sys.getEnv("TRAVIS_JOB_NUMBER"),
+					"build": Sys.getEnv("TRAVIS_BUILD_NUMBER"),
+					"tags": tags,
+					"browserName": "internet explorer",
+					"platform": "Windows XP",
+					"version": "8"
+				};
+
+				js.Node.console.log('========================================================');
+				js.Node.console.log('${caps.browserName} ${caps.version} on ${caps.platform}:');
+				browser.init(caps, function() {
+					browser.eval(sys.io.File.getContent("Test.js"), function(err, re) {
+						if (err != null) throw err;
+						browser.eval("Test.result", function(err, re) {
+							if (err != null) throw err;
+							js.Node.console.log(re);
+							browser.eval("Test.success", function(err, re) {
+								if (err != null) throw err;
+								success = re;
+								browser.quit(function(err) {
+									if (err != null) throw err;
+									Sys.exit(success ? 0 : 1);
+								});
+							});
+						});
+					});
+				});
+			#else
+				js.Browser.document.body.innerText = result = buf.toString();
+			#end
 		#end
 	}
 }

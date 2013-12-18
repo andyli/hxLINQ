@@ -1,5 +1,10 @@
 language: node_js
 
+env:
+  global:
+    - secure: U0jQs1EPQ+zFYxpOaQXb+4v6+JxONpXSDEjUQrU2RPrjCqeUUZQ35/vH3BNXF8ANGEmRIN0J8peBLXstnO9Q8J0Ye7SfWoLlvGdbIsEZSsKPOP6ZAu6tM8kjl85vXcUopSMY3zUa29sqeGxnFuvWKnmIuynX/PdMupbza2KhprU=
+    - secure: qXsAA9V43tFYF/k+EFZFN0tEhtfpvK4CZGckiAdJIZqGMoVppuOV8iRCI+rZ9U7nz9+QDC7EsOwDBxbQaBPdXGENsS6Fq39A9tpOzXcizCzJEKRGl8MG2Qrk4sm/aOTZZ/Fp69rzz877aeJVVla1Dsjo8J5C6VS0PYFirUoEUU0=
+
 before_script:
   - sudo apt-get install python-software-properties -y # for the next command
   - sudo add-apt-repository ppa:eyecreate/haxe -y
@@ -9,10 +14,13 @@ before_script:
   - sudo apt-get install php5 -y
   - sudo apt-get install gcc-multilib g++-multilib -y  # for hxcpp
   - haxelib install hxcpp
+  - haxelib install nodejs
+  - npm install wd
+  - curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
 
 script:
   - haxe -main Test -cp test -debug --interp
   - haxe -main Test -cp test -debug -neko Test.n && neko Test.n
-  - haxe -main Test -cp test -debug -js Test.js && node Test.js
+  - haxe -main Test -cp test -js Test.js --next -main Test -cp test -debug -js Test-node.js -lib nodejs && node Test-node.js
   - haxe -main Test -cp test -debug -php bin && php bin/index.php
   - haxe -main Test -cp test -debug -cpp bin -dce full && ./bin/Test-debug
