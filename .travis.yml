@@ -6,6 +6,7 @@ env:
     - secure: qXsAA9V43tFYF/k+EFZFN0tEhtfpvK4CZGckiAdJIZqGMoVppuOV8iRCI+rZ9U7nz9+QDC7EsOwDBxbQaBPdXGENsS6Fq39A9tpOzXcizCzJEKRGl8MG2Qrk4sm/aOTZZ/Fp69rzz877aeJVVla1Dsjo8J5C6VS0PYFirUoEUU0=
 
 before_script:
+  - sudo apt-get update
   - sudo apt-get install python-software-properties -y # for the next command
   - sudo add-apt-repository ppa:eyecreate/haxe -y
   - sudo apt-get update
