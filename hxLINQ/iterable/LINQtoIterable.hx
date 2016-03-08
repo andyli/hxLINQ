@@ -121,27 +121,27 @@ class LINQtoIterable {
 	}
 
 	static public function min<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Float):Float {
-		if (clause == null){
-			return linq.aggregate(cast linq.first(), cast Math.min);
-		} else {
-			return linq.aggregate(clause(linq.first()), function(s:Float,i:T) return Math.min(s,clause(i)));
+		if (clause == null) {
+			clause = function(_) return cast(_, Float);
 		}
+
+		return linq.aggregate(clause(linq.first()), function(s:Float,i:T) return Math.min(s,clause(i)));
 	}
 
 	static public function max<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Float):Float {
-		if (clause == null){
-			return linq.aggregate(cast linq.first(), cast Math.max);
-		} else {
-			return linq.aggregate(clause(linq.first()), function(s:Float,i:T) return Math.max(s,clause(i)));
+		if (clause == null) {
+			clause = function(_) return cast(_, Float);
 		}
+
+		return linq.aggregate(clause(linq.first()), function(s:Float,i:T) return Math.max(s,clause(i)));
 	}
 
 	static public function sum<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Float):Float {
-		if (clause == null){
-			return linq.aggregate(0.0, function(s:Float,i:T) return s + cast i);
-		} else {
-			return linq.aggregate(0.0, function(s:Float,i:T) return s + clause(i));
+		if (clause == null) {
+			clause = function(_) return cast(_, Float);
 		}
+
+		return linq.aggregate(0.0, function(s:Float,i:T) return s + clause(i));
 	}
 
 	static public function average<T, C:Iterable<T>>(linq:LINQ<T,C>, ?clause:T->Float):Float {

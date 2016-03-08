@@ -40,10 +40,10 @@ install:
 
 script:
   - haxe -main Test -cp test -debug --interp
-  - haxe -main Test -cp test -debug -neko bin/Test.n       && neko bin/Test.n
-  - haxe -main Test -cp test -debug -js bin/Test.js        && node bin/Test.js
-  - haxe -main Test -cp test -debug -php bin               && php bin/index.php
-  # - haxe -main Test -cp test -debug -java bin              && java -jar bin/Test-Debug.jar
-  # - haxe -main Test -cp test -debug -cs bin                && mono bin/bin/Test-debug.exe
-  - haxe -main Test -cp test -debug -python bin/Test.py    && python3 bin/Test.py
-  - haxe -main Test -cp test -debug -cpp bin -dce full     && ./bin/Test-debug
+  - haxe -main Test -cp test -debug -neko bin/Test.n          && neko bin/Test.n
+  - haxe -main Test -cp test -debug -js bin/Test.js           && node bin/Test.js
+  - haxe -main Test -cp test -debug -php bin                  && php bin/index.php
+  - haxe -main Test -cp test -debug -java bin                 && java -jar bin/Test-Debug.jar
+  - haxe -main Test -cp test -debug -cs bin -D erase-generics && mono bin/bin/Test-debug.exe
+  - haxe -main Test -cp test -debug -python bin/Test.py       && python3 bin/Test.py
+  - haxe -main Test -cp test -debug -cpp bin -dce full        && ./bin/Test-debug
