@@ -25,8 +25,18 @@ addons:
       - mono-devel
       - mono-mcs
 
-before_script:
+install:
+  # os-specific config
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+      brew update;
+      brew install mono;
+      brew install python3;
+    fi
+  # Install haxelibs
   - haxelib install hxcpp
+  - haxelib install hxjava
+  - haxelib install hxcs
+  - haxelib list
 
 script:
   - haxe -main Test -cp test -debug --interp
