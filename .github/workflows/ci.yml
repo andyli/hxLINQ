@@ -12,10 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
       - name: setup haxelib
         run: |
           set -ex
           haxelib newrepo
-          haxelib install test.hxml
+          haxelib install test.hxml --always
       - name: test
         run: haxe test.hxml
