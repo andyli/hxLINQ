@@ -9,6 +9,7 @@ jobs:
           - "haxe:4.1"
           - "haxe:4.0"
           - "haxe:3.4"
+    runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     steps:
       - haxelib newrepo
