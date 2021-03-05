@@ -358,9 +358,12 @@ class LINQtoIterable {
 	static public function ofType<T, C:Iterable<T>, T2>(linq:LINQ<T,C>, type:Class<T2>):LINQ<T2,Array<T2>> {
 		var newArray = new Array<T2>();
 		for (item in linq.items) {
-			if (Std.is(item,type)) {
+			#if (haxe_ver >= 4.1)
+			if (Std.isOfType(item, type))
+			#else
+			if (Std.is(item, type))
+			#end
 				newArray.push(cast item);
-			}
 		}
 		return new LINQ(newArray);
 	}
