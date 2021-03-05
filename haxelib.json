@@ -4,7 +4,7 @@
   "license": "MIT",
   "tags": ["cross"],
   "description": "Haxe implementation of LINQ.",
-  "version": "1.2.0",
-  "releasenote": "Haxe 3 compatibility.",
+  "version": "1.2.1",
+  "releasenote": "avoid Haxe 4 warnings",
   "contributors": ["andyli"]
 }
