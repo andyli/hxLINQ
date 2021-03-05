@@ -1,0 +1,16 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  test:
+    strategy:
+      matrix:
+        container:
+          - "haxe:4.2"
+          - "haxe:4.1"
+          - "haxe:4.0"
+          - "haxe:3.4"
+    container: ${{ matrix.container }}
+    steps:
+      - haxelib newrepo
+      - haxelib install test.hxml
+      - haxe test.hxml

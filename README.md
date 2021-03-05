@@ -1,4 +1,4 @@
-# hxLINQ [![Build Status](https://travis-ci.org/andyli/hxLINQ.svg?branch=master)](https://travis-ci.org/andyli/hxLINQ)
+# hxLINQ
 
 An implementation of LINQ in Haxe.
 
