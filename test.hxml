@@ -1,5 +1,5 @@
---main Test
---class-path test
---library utest
---dce full
+-main Test
+-cp test
+-lib utest
+-dce full
 --interp
